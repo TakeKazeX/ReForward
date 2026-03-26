@@ -1201,6 +1201,18 @@
       background-clip: padding-box;
     }
 
+    .modal-shell.modal-centered {
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-shell.modal-centered .modal-card {
+      width: min(460px, calc(100vw - 32px));
+      max-height: none;
+      transform-origin: center;
+    }
+
     .editor-header {
       display: flex;
       align-items: flex-start;
@@ -1240,6 +1252,70 @@
       justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .confirm-panel {
+      display: grid;
+      gap: 16px;
+      padding: 22px;
+    }
+
+    .confirm-panel h3 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .confirm-panel p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .confirm-route {
+      padding: 14px 16px;
+      border: 1px solid rgba(176, 49, 40, 0.12);
+      border-radius: 18px;
+      background: var(--red-soft);
+      color: var(--red);
+      font: 600 14px var(--mono);
+      word-break: break-all;
+    }
+
+    .confirm-detail {
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      background: var(--soft-fill);
+    }
+
+    .confirm-detail-row {
+      display: grid;
+      gap: 4px;
+    }
+
+    .confirm-detail-label {
+      color: var(--text-tertiary);
+      font: 600 11px var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .confirm-detail-value {
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
     }
 
     .modal-close {
@@ -2235,6 +2311,39 @@
     </div>
   </div>
 
+  <div class="modal-shell modal-centered" id="deleteModal" aria-hidden="true">
+    <div class="modal-backdrop" id="deleteModalBackdrop"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="confirm-panel">
+        <div>
+          <p class="editor-kicker">Delete Route</p>
+          <h3 id="deleteModalTitle">确认删除路由</h3>
+        </div>
+        <p>删除后会立即从公开入口移除，这个操作不能撤销。</p>
+        <div class="confirm-route" id="deleteRoutePath">/</div>
+        <div class="confirm-detail">
+          <div class="confirm-detail-row">
+            <div class="confirm-detail-label">类型</div>
+            <div class="confirm-detail-value" id="deleteRouteKind">-</div>
+          </div>
+          <div class="confirm-detail-row">
+            <div class="confirm-detail-label">规则内容</div>
+            <div class="confirm-detail-value" id="deleteRouteContent">-</div>
+          </div>
+          <div class="confirm-detail-row">
+            <div class="confirm-detail-label">备注</div>
+            <div class="confirm-detail-value" id="deleteRouteNotes">未填写</div>
+          </div>
+        </div>
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">取消</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+        </div>
+        <div id="deleteStatus" class="status"></div>
+      </div>
+    </div>
+  </div>
+
 
 
   <div class="security-fx" id="securityFx" aria-hidden="true">
@@ -2277,6 +2386,7 @@
           notes: false,
         },
       },
+      deleteCandidate: null,
       securityMode: {
         enabled: false,
         action: "default_redirect",
@@ -2362,6 +2472,15 @@
     const routeModal = document.getElementById("routeModal");
     const routeModalBackdrop = document.getElementById("routeModalBackdrop");
     const routeModalScroll = routeModal.querySelector(".modal-scroll");
+    const deleteModal = document.getElementById("deleteModal");
+    const deleteModalBackdrop = document.getElementById("deleteModalBackdrop");
+    const deleteRoutePath = document.getElementById("deleteRoutePath");
+    const deleteRouteKind = document.getElementById("deleteRouteKind");
+    const deleteRouteContent = document.getElementById("deleteRouteContent");
+    const deleteRouteNotes = document.getElementById("deleteRouteNotes");
+    const deleteStatusEl = document.getElementById("deleteStatus");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
     const closeModalBtn = document.getElementById("closeModalBtn");
     const securityModal = document.getElementById("securityModal");
     // removed securityModalBackdrop
@@ -2454,6 +2573,11 @@
     function setPasswordStatus(message, type = "") {
       passwordStatusEl.textContent = message || "";
       passwordStatusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function setDeleteStatus(message, type = "") {
+      deleteStatusEl.textContent = message || "";
+      deleteStatusEl.className = "status" + (type ? " " + type : "");
     }
 
     function resetPasswordForm() {
@@ -3202,6 +3326,29 @@
       routeModal.setAttribute("aria-hidden", "true");
     }
 
+    function openDeleteModal(route) {
+      state.deleteCandidate = route || null;
+      deleteRoutePath.textContent = "/" + String(route?.slug || "");
+      deleteRouteKind.textContent = String(route?.kind || "-");
+      deleteRouteContent.textContent = String(route?.kind === "text" ? (route?.content || "") : (route?.targetUrl || "")) || "-";
+      deleteRouteNotes.textContent = String(route?.notes || "").trim() || "未填写";
+      setDeleteStatus("");
+      deleteModal.classList.add("open");
+      deleteModal.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => {
+        confirmDeleteBtn.focus();
+      });
+    }
+
+    function closeDeleteModal() {
+      state.deleteCandidate = null;
+      confirmDeleteBtn.disabled = false;
+      confirmDeleteBtn.textContent = "确认删除";
+      setDeleteStatus("");
+      deleteModal.classList.remove("open");
+      deleteModal.setAttribute("aria-hidden", "true");
+    }
+
     function openSecurityModal() {
       setSecurityStatus("");
       setPasswordStatus("");
@@ -3447,8 +3594,7 @@
           fillForm(route, true);
           setStatus("已载入复制副本，请修改路径后保存", "success");
         } else if (action === "delete") {
-          if (!confirm("确认删除 /" + route.slug + " ?")) return;
-          await deleteRoute(route.id);
+          openDeleteModal(route);
         }
       } catch (error) {
         setStatus(error.message || "操作失败", "error");
@@ -3464,6 +3610,27 @@
     });
 
     resetBtn.addEventListener("click", resetForm);
+    cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+    confirmDeleteBtn.addEventListener("click", async () => {
+      const route = state.deleteCandidate;
+      if (!route) {
+        closeDeleteModal();
+        return;
+      }
+
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = "删除中...";
+      setDeleteStatus("正在删除...");
+
+      try {
+        await deleteRoute(route.id);
+        closeDeleteModal();
+      } catch (error) {
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.textContent = "确认删除";
+        setDeleteStatus(error.message || "删除失败", "error");
+      }
+    });
     newRouteBtn.addEventListener("click", () => {
       resetForm();
       openRouteModal();
@@ -3551,6 +3718,7 @@
     });
     closeModalBtn.addEventListener("click", closeRouteModal);
     routeModalBackdrop.addEventListener("click", closeRouteModal);
+    deleteModalBackdrop.addEventListener("click", closeDeleteModal);
     updatePasswordBtn.addEventListener("click", () => {
       updateConsolePassword();
     });
@@ -3613,6 +3781,10 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && deleteModal.classList.contains("open")) {
+        closeDeleteModal();
+        return;
+      }
       if (event.key === "Escape" && routeModal.classList.contains("open")) {
         closeRouteModal();
         return;
