@@ -1,4 +1,6 @@
 import {
+  BACKUP_FILE_FORMAT,
+  BACKUP_FILE_VERSION,
   BOOTSTRAP_FALLBACK_MODES,
   DEFAULT_SECURITY_MODE,
   LOGIN_BLOCK_SECONDS,
@@ -81,6 +83,101 @@ export async function getBootstrapAndSecurityState(db) {
   return {
     bootstrap: buildBootstrapState(settings),
     securityMode: normalizeSecurityModeRecord(settings),
+  };
+}
+
+export async function exportAdminBackup(db) {
+  const [bootstrap, securityMode, passwordRecord, routes] = await Promise.all([
+    getBootstrapState(db),
+    getSecurityMode(db),
+    getConsolePasswordRecord(db),
+    listRoutes(db),
+  ]);
+
+  if (!bootstrap.backendPathValue || !passwordRecord) {
+    throw new HttpError(503, "Backup is unavailable before setup is complete");
+  }
+
+  return {
+    format: BACKUP_FILE_FORMAT,
+    version: BACKUP_FILE_VERSION,
+    createdAt: new Date().toISOString(),
+    bootstrap: {
+      backendPath: bootstrap.backendPathValue,
+      fallbackMode: bootstrap.fallbackMode,
+      defaultRedirect: bootstrap.defaultRedirect,
+      defaultText: bootstrap.defaultText,
+      defaultStatusCode: bootstrap.defaultStatusCode,
+      passwordRecord,
+    },
+    securityMode,
+    routes,
+  };
+}
+
+export async function restoreAdminBackup(db, backup) {
+  await ensureSystemSettingsSchema(db);
+  await ensureLoginAttemptsSchema(db);
+
+  const routeStatements = backup.routes.map((route) =>
+    db
+      .prepare(
+        `INSERT INTO routes
+          (slug, kind, target_url, content, user_agent, enabled, strip_cookies, enable_cors, block_private_targets, rewrite_html, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        route.slug,
+        route.kind,
+        route.targetUrl,
+        route.content,
+        route.userAgent,
+        route.enabled ? 1 : 0,
+        route.stripCookies ? 1 : 0,
+        route.enableCors ? 1 : 0,
+        route.blockPrivateTargets ? 1 : 0,
+        route.rewriteHtml ? 1 : 0,
+        route.notes
+      )
+  );
+
+  const settingEntries = [
+    ["backend_path", normalizeBackendPathSetting(backup.bootstrap.backendPath)],
+    ["console_password_hash", String(backup.bootstrap.passwordRecord.hash || "")],
+    ["console_password_iterations", String(backup.bootstrap.passwordRecord.iterations || "")],
+    ["console_password_salt", String(backup.bootstrap.passwordRecord.salt || "")],
+    ["default_fallback_mode", backup.bootstrap.fallbackMode],
+    ["default_redirect_url", normalizeDefaultRedirectSetting(backup.bootstrap.defaultRedirect)],
+    ["default_response_text", normalizeBootstrapText(backup.bootstrap.defaultText)],
+    ["default_status_code", String(normalizeBootstrapStatusCode(backup.bootstrap.defaultStatusCode))],
+    ["security_mode_enabled", backup.securityMode.enabled ? "1" : "0"],
+    ["security_mode_action", backup.securityMode.action],
+    ["security_mode_status_code", String(normalizeStatusCode(backup.securityMode.statusCode))],
+    ["security_mode_text", normalizeSecurityText(backup.securityMode.text)],
+  ];
+
+  const settingStatements = settingEntries.map(([key, value]) =>
+    db
+      .prepare(
+        `INSERT INTO system_settings(key, value, updated_at)
+         VALUES (?, ?, CURRENT_TIMESTAMP)
+         ON CONFLICT(key) DO UPDATE SET
+           value = excluded.value,
+           updated_at = CURRENT_TIMESTAMP`
+      )
+      .bind(key, value)
+  );
+
+  await db.batch([
+    db.prepare("DELETE FROM routes"),
+    db.prepare("DELETE FROM login_attempts"),
+    ...routeStatements,
+    ...settingStatements,
+  ]);
+
+  return {
+    backendPath: normalizeBackendPathSetting(backup.bootstrap.backendPath),
+    routeCount: backup.routes.length,
   };
 }
 

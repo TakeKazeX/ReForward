@@ -31,6 +31,8 @@ export const DEFAULT_SECURITY_MODE = Object.freeze({
   statusCode: 503,
   text: "Access temporarily disabled by security mode.",
 });
+export const BACKUP_FILE_FORMAT = "reforward-backup";
+export const BACKUP_FILE_VERSION = 1;
 
 export const UA_MAP = {
   mihomo: "mihomo",

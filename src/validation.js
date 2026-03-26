@@ -1,5 +1,7 @@
 import {
   ALLOWED_ROUTE_KINDS,
+  BACKUP_FILE_FORMAT,
+  BACKUP_FILE_VERSION,
   BOOTSTRAP_FALLBACK_MODES,
   BOOTSTRAP_ROUTE_PATH,
   DEFAULT_SECURITY_MODE,
@@ -209,6 +211,135 @@ export function validatePasswordChangePayload(payload) {
   return {
     currentPassword,
     newPassword,
+  };
+}
+
+export function validateBackupPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new HttpError(400, "Backup file must be a JSON object");
+  }
+
+  if (String(payload.format || "") !== BACKUP_FILE_FORMAT) {
+    throw new HttpError(400, "Invalid backup file format");
+  }
+
+  if (Number(payload.version) !== BACKUP_FILE_VERSION) {
+    throw new HttpError(400, "Unsupported backup file version");
+  }
+
+  const bootstrapSource = payload.bootstrap || {};
+  const backendPath = normalizeBackendPath(bootstrapSource.backendPath);
+  const fallbackMode = String(bootstrapSource.fallbackMode || "").trim();
+  const defaultRedirect = normalizeBootstrapRedirectUrl(bootstrapSource.defaultRedirect);
+  const defaultText = String(bootstrapSource.defaultText || "");
+  const defaultStatusCode = normalizeStatusCode(bootstrapSource.defaultStatusCode);
+  const passwordRecord = bootstrapSource.passwordRecord || {};
+  const passwordHash = String(passwordRecord.hash || "").trim();
+  const passwordSalt = String(passwordRecord.salt || "").trim();
+  const passwordIterations = Number(passwordRecord.iterations);
+
+  if (!backendPath) {
+    throw new HttpError(400, "Backup file is missing backend path");
+  }
+
+  validateBackendPath(backendPath);
+
+  if (!BOOTSTRAP_FALLBACK_MODES.has(fallbackMode)) {
+    throw new HttpError(400, "Backup file contains invalid default access mode");
+  }
+
+  if (fallbackMode === "site" && !defaultRedirect) {
+    throw new HttpError(400, "Backup file is missing default site URL");
+  }
+
+  if (fallbackMode === "text") {
+    if (!defaultText.trim()) {
+      throw new HttpError(400, "Backup file is missing default text");
+    }
+    if (defaultText.length > MAX_BOOTSTRAP_TEXT_LENGTH) {
+      throw new HttpError(400, `Default text is too long (max ${MAX_BOOTSTRAP_TEXT_LENGTH} chars)`);
+    }
+  }
+
+  if (fallbackMode === "status_code" && bootstrapSource.defaultStatusCode == null) {
+    throw new HttpError(400, "Backup file is missing default status code");
+  }
+
+  if (!passwordHash || !passwordSalt || !Number.isInteger(passwordIterations) || passwordIterations <= 0) {
+    throw new HttpError(400, "Backup file is missing console password record");
+  }
+
+  if (!Array.isArray(payload.routes)) {
+    throw new HttpError(400, "Backup file routes must be an array");
+  }
+
+  const seenSlugs = new Set();
+  const routes = payload.routes.map((routePayload) => {
+    const route = validateRoutePayload(routePayload, { backendPathValue: backendPath });
+    if (seenSlugs.has(route.slug)) {
+      throw new HttpError(400, `Backup file contains duplicate route path: ${route.slug}`);
+    }
+    seenSlugs.add(route.slug);
+    return route;
+  });
+
+  const securityMode = validateSecurityModePayload(payload.securityMode || DEFAULT_SECURITY_MODE);
+
+  return {
+    bootstrap: {
+      backendPath,
+      fallbackMode,
+      defaultRedirect,
+      defaultText: defaultText.trim(),
+      defaultStatusCode,
+      passwordRecord: {
+        hash: passwordHash,
+        salt: passwordSalt,
+        iterations: passwordIterations,
+      },
+    },
+    securityMode,
+    routes,
+  };
+}
+
+export function validateBackupRestorePayload(payload) {
+  const source = payload && typeof payload === "object" ? payload : {};
+  const backup = validateBackupPayload(source.backup && typeof source.backup === "object" ? source.backup : source);
+  const overrideBackendPathRaw = String(source.overrideBackendPath || "").trim();
+  const overridePassword = String(source.overridePassword || "");
+
+  if (overrideBackendPathRaw) {
+    const overrideBackendPath = normalizeBackendPath(overrideBackendPathRaw);
+    if (!overrideBackendPath) {
+      throw new HttpError(400, "Override backend path is invalid");
+    }
+    validateBackendPath(overrideBackendPath);
+    backup.bootstrap.backendPath = overrideBackendPath;
+
+    const seenSlugs = new Set();
+    backup.routes = backup.routes.map((routePayload) => {
+      const route = validateRoutePayload(routePayload, { backendPathValue: overrideBackendPath });
+      if (seenSlugs.has(route.slug)) {
+        throw new HttpError(400, `Backup file contains duplicate route path: ${route.slug}`);
+      }
+      seenSlugs.add(route.slug);
+      return route;
+    });
+  }
+
+  if (overridePassword) {
+    if (overridePassword.length < MIN_CONSOLE_PASSWORD_LENGTH) {
+      throw new HttpError(400, `Override password is too short (min ${MIN_CONSOLE_PASSWORD_LENGTH} chars)`);
+    }
+    if (overridePassword.length > MAX_CONSOLE_PASSWORD_LENGTH) {
+      throw new HttpError(400, `Override password is too long (max ${MAX_CONSOLE_PASSWORD_LENGTH} chars)`);
+    }
+  }
+
+  return {
+    backup,
+    overridePassword,
   };
 }
 

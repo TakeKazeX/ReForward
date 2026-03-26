@@ -12,6 +12,7 @@ import {
   bumpSessionRevision,
   clearLoginThrottle,
   deleteRoute,
+  exportAdminBackup,
   getBootstrapState,
   getConsolePasswordRecord,
   getSecurityMode,
@@ -23,6 +24,7 @@ import {
   listRoutes,
   persistBackendPath,
   recordLoginFailure,
+  restoreAdminBackup,
   updateConsolePasswordRecord,
   updateSecurityMode,
   updateRoute,
@@ -33,6 +35,7 @@ import { adminResponseHeaders, baseResponseHeaders, HttpError, parseJson, toAbso
 import {
   extractRouteId,
   validateBootstrapPayload,
+  validateBackupRestorePayload,
   validatePasswordChangePayload,
   validateRoutePayload,
   validateSecurityModePayload,
@@ -259,6 +262,43 @@ export async function handleAdminRequest({ request, env, config, url, routePath,
           sessionTerminated: true,
         },
         { headers: adminResponseHeaders(new Headers(JSON_HEADERS)) }
+      );
+    } catch (error) {
+      return handleAdminApiError(error);
+    }
+  }
+
+  if (routePath === `${runtimeConfig.backendBasePath}/api/backup` && request.method === "GET") {
+    try {
+      const backup = await exportAdminBackup(env.DB);
+      return Response.json(backup, {
+        headers: adminResponseHeaders(new Headers(JSON_HEADERS)),
+      });
+    } catch (error) {
+      return handleAdminApiError(error);
+    }
+  }
+
+  if (routePath === `${runtimeConfig.backendBasePath}/api/backup` && request.method === "POST") {
+    try {
+      const payload = await parseJson(request);
+      const { backup, overridePassword } = validateBackupRestorePayload(payload);
+      if (overridePassword) {
+        backup.bootstrap.passwordRecord = await createPasswordRecord(overridePassword);
+      }
+      const restored = await restoreAdminBackup(env.DB, backup);
+      await bumpSessionRevision(env.DB);
+
+      return Response.json(
+        {
+          ok: true,
+          sessionTerminated: true,
+          routeCount: restored.routeCount,
+          backendBasePath: `/${restored.backendPath}`,
+        },
+        {
+          headers: adminResponseHeaders(new Headers(JSON_HEADERS)),
+        }
       );
     } catch (error) {
       return handleAdminApiError(error);
