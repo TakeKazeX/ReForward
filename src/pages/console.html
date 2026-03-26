@@ -441,6 +441,12 @@
       border-color: var(--surface-border-strong);
     }
 
+    .btn-success {
+      background: var(--green-soft);
+      border-color: rgba(22, 119, 78, 0.22);
+      color: var(--green);
+    }
+
     .btn-danger {
       background: var(--soft-fill);
       border-color: rgba(176, 49, 40, 0.16);
@@ -3419,6 +3425,32 @@
       updateFilterThumb();
     }
 
+    function buildRoutePath(slug) {
+      return "/" + encodeURIComponent(String(slug || "")).replace(/%2F/g, "/");
+    }
+
+    function buildRouteUrl(route) {
+      return new URL(buildRoutePath(route?.slug), window.location.origin).href;
+    }
+
+    function flashCopyButtonSuccess(button) {
+      if (!button) return;
+      const originalLabel = button.dataset.originalLabel || button.textContent || "拷贝网址";
+      button.dataset.originalLabel = originalLabel;
+      if (button._copyFeedbackTimer) {
+        clearTimeout(button._copyFeedbackTimer);
+      }
+      button.classList.remove("btn-secondary");
+      button.classList.add("btn-success");
+      button.textContent = "✓ 已复制";
+      button._copyFeedbackTimer = setTimeout(() => {
+        button.classList.remove("btn-success");
+        button.classList.add("btn-secondary");
+        button.textContent = originalLabel;
+        button._copyFeedbackTimer = 0;
+      }, 1400);
+    }
+
     function renderRoutes() {
       const visibleRoutes = getVisibleRoutes();
 
@@ -3436,6 +3468,7 @@
       emptyEl.hidden = true;
       routesEl.innerHTML = visibleRoutes.map((route, index) => {
         const target = route.kind === "text" ? route.content : route.targetUrl;
+        const routePath = buildRoutePath(route.slug);
         const stateBadgeClass = route.enabled ? "badge-on" : "badge-off";
         const stateBadgeText = route.enabled ? "Enabled" : "Disabled";
 
@@ -3462,10 +3495,11 @@
             <div class="route-notes">备注：${escapeHtmlJs(route.notes || "未填写")}</div>
 
             <div class="route-actions">
-              <a class="btn btn-secondary" href="/${encodeURIComponent(route.slug).replace(/%2F/g, "/")}" target="_blank" rel="noreferrer">打开</a>
-              <button type="button" class="btn btn-secondary" data-action="edit" data-id="${route.id}">编辑</button>
-              <button type="button" class="btn btn-secondary" data-action="duplicate" data-id="${route.id}">复制</button>
-              <button type="button" class="btn btn-danger" data-action="delete" data-id="${route.id}">删除</button>
+              <a class="btn btn-secondary" href="${routePath}" target="_blank" rel="noreferrer">打开</a>
+              <button type="button" class="btn btn-secondary" data-action="copy-url" data-id="${route.id}">拷贝网址</button>
+              <button type="button" class="btn btn-secondary" data-action="edit" data-id="${route.id}">编辑路由</button>
+              <button type="button" class="btn btn-secondary" data-action="duplicate" data-id="${route.id}">复制规则</button>
+              <button type="button" class="btn btn-danger" data-action="delete" data-id="${route.id}">删除规则</button>
             </div>
           </article>
         `;
@@ -3587,7 +3621,10 @@
       if (!route) return;
 
       try {
-        if (action === "edit") {
+        if (action === "copy-url") {
+          await navigator.clipboard.writeText(buildRouteUrl(route));
+          flashCopyButtonSuccess(button);
+        } else if (action === "edit") {
           fillForm(route, false);
           setStatus("");
         } else if (action === "duplicate") {
