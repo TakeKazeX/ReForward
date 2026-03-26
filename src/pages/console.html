@@ -964,22 +964,152 @@
       font: 600 13px var(--font);
     }
 
+    .layout-switch {
+      position: relative;
+      flex: 0 0 auto;
+      width: 112px;
+      height: 46px;
+      padding: 3px;
+      border: 1px solid var(--seg-track-border);
+      border-radius: 999px;
+      background: var(--seg-track-bg);
+      box-shadow: var(--seg-track-shadow);
+      overflow: hidden;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+    }
+
+    .layout-switch:focus-visible {
+      box-shadow:
+        var(--seg-track-shadow),
+        0 0 0 4px rgba(11, 102, 214, 0.14);
+    }
+
+    .layout-switch-main,
+    .layout-switch-peek {
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      font: 700 12px/1 var(--font);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      transition:
+        transform .28s cubic-bezier(.22, 1, .36, 1),
+        opacity .24s ease,
+        background .24s ease,
+        color .24s ease,
+        border-color .24s ease;
+    }
+
+    .layout-switch-main {
+      left: 3px;
+      width: 70px;
+      z-index: 2;
+      background: var(--seg-thumb-bg);
+      border: 1px solid var(--seg-thumb-border);
+      box-shadow: var(--seg-thumb-shadow);
+      color: var(--text);
+    }
+
+    .layout-switch-peek {
+      right: -21px;
+      width: 60px;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(140, 150, 162, 0.12);
+      color: var(--text-secondary);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .layout-switch[data-layout-current="single"] .layout-switch-main {
+      transform: translateX(36px);
+    }
+
+    .layout-switch[data-layout-current="single"] .layout-switch-peek {
+      transform: translateX(-70px);
+    }
+
+    :root[data-theme="dark"] .layout-switch-peek {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
     .filter-chip.active {
       color: var(--text);
     }
 
     .route-list {
       display: grid;
-      gap: 12px;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    }
+
+    .route-list[data-layout="single"] {
+      grid-template-columns: 1fr;
+    }
+
+    .route-list[data-layout="double"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-list[data-layout="single"] .route-card {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto 1fr auto;
+      align-items: start;
+    }
+
+    .route-list[data-layout="single"] .route-top {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+
+    .route-list[data-layout="single"] .route-meta {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .route-list[data-layout="single"] .route-notes {
+      grid-column: 1;
+      grid-row: 4;
+    }
+
+    .route-list[data-layout="single"] .route-actions {
+      grid-column: 2;
+      grid-row: 4;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-content: flex-end;
+      align-self: end;
+      justify-self: end;
+      width: max-content;
+      max-width: 100%;
+    }
+
+    .route-list[data-layout="single"] .route-actions .btn {
+      width: auto;
+    }
+
+    .route-list[data-layout="single"] .route-actions > :last-child {
+      grid-column: auto;
     }
 
     .route-card {
-      padding: 18px;
+      padding: 16px;
       border: 1px solid var(--surface-border);
       border-radius: 22px;
       background: var(--surface-soft);
       display: grid;
-      gap: 14px;
+      gap: 10px 16px;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 250px);
+      align-items: start;
       transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
       animation: card-in .32s cubic-bezier(.16, 1, .3, 1) both;
     }
@@ -1002,29 +1132,40 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
+      min-width: 0;
+      grid-column: 1;
     }
 
     .route-path {
       margin: 0;
-      font: 700 18px var(--mono);
+      font: 700 16px var(--mono);
       letter-spacing: -0.03em;
       word-break: break-all;
     }
 
     .route-target {
-      margin: 6px 0 0;
+      margin: 4px 0 0;
       color: var(--text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 13px;
+      line-height: 1.5;
       word-break: break-all;
     }
 
     .route-badges,
-    .route-meta,
-    .route-actions {
+    .route-meta {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .route-badges {
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .route-meta {
+      grid-column: 1;
+      gap: 6px;
     }
 
     .badge,
@@ -1060,19 +1201,151 @@
       border-radius: 12px;
       background: var(--meta-fill);
       color: var(--text-secondary);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       letter-spacing: 0;
       text-transform: none;
     }
 
     .route-notes {
-      padding: 11px 14px;
+      grid-column: 1;
+      padding: 10px 12px;
       border-radius: 16px;
       background: var(--soft-fill-weak);
       color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .route-actions {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-content: start;
+      align-self: stretch;
+    }
+
+    .route-actions .btn {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
       font-size: 13px;
-      line-height: 1.6;
+      white-space: nowrap;
+    }
+
+    .route-actions > :last-child {
+      grid-column: 1 / -1;
+    }
+
+    /* 单列布局深度优化（仅桌面端生效） */
+    @media (min-width: 1121px) {
+      .route-list[data-layout="single"] .route-card {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto 1fr auto;
+        padding: 22px 26px;
+        gap: 12px 24px;
+        align-items: start;
+      }
+
+      .route-list[data-layout="single"] .route-top {
+        grid-column: 1 / -1;
+        grid-row: 1;
+      }
+
+      .route-list[data-layout="single"] .route-meta {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .route-list[data-layout="single"] .route-notes {
+        grid-column: 1;
+        grid-row: 4;
+      }
+
+      .route-list[data-layout="single"] .route-actions {
+        grid-column: 2;
+        grid-row: 4;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: flex-end;
+        align-content: flex-end;
+        align-self: end;
+        justify-self: end;
+        gap: 10px;
+        max-width: 500px;
+      }
+
+      .route-list[data-layout="single"] .route-actions .btn {
+        width: auto;
+        min-height: 38px;
+        padding: 8px 16px;
+      }
+
+      .route-list[data-layout="single"] .route-actions > :last-child {
+        grid-column: auto;
+      }
+
+      .route-list[data-layout="double"] .route-card {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 250px);
+        grid-template-rows: auto auto 1fr auto;
+        gap: 12px 18px;
+      }
+
+      .route-list[data-layout="double"] .route-top {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 14px;
+      }
+
+      .route-list[data-layout="double"] .route-top > div:first-child {
+        min-width: 0;
+      }
+
+      .route-list[data-layout="double"] .route-badges {
+        justify-content: flex-end;
+        justify-self: end;
+        align-self: start;
+      }
+
+      .route-list[data-layout="double"] .route-meta {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .route-list[data-layout="double"] .route-notes {
+        grid-column: 1;
+        grid-row: 4;
+      }
+
+      .route-list[data-layout="double"] .route-actions {
+        grid-column: 2;
+        grid-row: 2 / span 3;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(100px, 1fr));
+        grid-auto-rows: minmax(40px, auto);
+        gap: 10px;
+        align-content: start;
+        align-self: stretch;
+      }
+
+      .route-list[data-layout="double"] .route-actions .btn {
+        min-height: 40px;
+        padding: 9px 12px;
+        border-radius: 17px;
+        font-size: 13px;
+      }
+
+      .route-list[data-layout="double"] .route-actions > :last-child {
+        grid-column: 2;
+        margin-top: 8px;
+      }
     }
 
     .empty,
@@ -1892,6 +2165,24 @@
       .overview {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .route-list {
+        grid-template-columns: 1fr;
+      }
+
+      .route-card {
+        grid-template-columns: 1fr;
+      }
+
+      .route-actions {
+        grid-column: 1;
+        grid-row: auto;
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      }
+
+      .route-actions > :last-child {
+        grid-column: auto;
+      }
     }
 
     @media (max-width: 860px) {
@@ -1940,6 +2231,18 @@
 
       .filter-group {
         width: 100%;
+      }
+
+      .layout-switch {
+        width: 112px;
+      }
+
+      .route-top {
+        flex-direction: column;
+      }
+
+      .route-badges {
+        justify-content: flex-start;
       }
 
       .modal-shell {
@@ -2130,6 +2433,11 @@
           <label class="search">
             <input id="searchField" type="search" placeholder="搜索路径、目标地址、备注、User-Agent">
           </label>
+
+          <button type="button" class="layout-switch" id="layoutSwitch" aria-label="切换列表布局">
+            <span class="layout-switch-main" id="layoutCurrentLabel">双列</span>
+            <span class="layout-switch-peek" id="layoutNextLabel" aria-hidden="true">单列</span>
+          </button>
 
           <div class="seg-control filter-group" id="filterSwitch">
             <span class="seg-thumb" id="filterThumb" aria-hidden="true"></span>
@@ -2382,6 +2690,7 @@
       schemaReady: true,
       search: "",
       kindFilter: "all",
+      routeLayout: "double",
       userAgentMode: "mihomo",
       routeValidation: {
         submitted: false,
@@ -2474,6 +2783,9 @@
     const filterTrack = document.getElementById("filterSwitch");
     const filterButtons = Array.from(filterTrack?.querySelectorAll("[data-kind-filter]") || []);
     const filterThumb = document.getElementById("filterThumb");
+    const layoutTrack = document.getElementById("layoutSwitch");
+    const layoutCurrentLabel = document.getElementById("layoutCurrentLabel");
+    const layoutNextLabel = document.getElementById("layoutNextLabel");
     const schemaHelpEl = document.getElementById("schemaHelp");
     const routeModal = document.getElementById("routeModal");
     const routeModalBackdrop = document.getElementById("routeModalBackdrop");
@@ -2496,6 +2808,7 @@
     const themeThumb = document.getElementById("themeThumb");
     const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
     const themeStorageKey = "reforward-theme-mode";
+    const layoutStorageKey = "reforward-route-layout";
     let slugAnimationFrame = 0;
     let slugAnimationToken = 0;
     let securityFxTimer = 0;
@@ -2506,6 +2819,15 @@
         return localStorage.getItem(themeStorageKey) || "system";
       } catch {
         return "system";
+      }
+    }
+
+    function readRouteLayout() {
+      try {
+        const layout = localStorage.getItem(layoutStorageKey) || "double";
+        return layout === "single" ? "single" : "double";
+      } catch {
+        return "double";
       }
     }
 
@@ -2551,6 +2873,92 @@
     function updateFilterThumb() {
       const active = filterButtons.find(b => b.classList.contains("active"));
       positionSegThumb(filterThumb, active, filterTrack);
+    }
+
+    function animateRouteLayoutTransition(nextLayout) {
+      if (!routesEl || routesEl.dataset.layout === nextLayout) {
+        routesEl.dataset.layout = nextLayout;
+        return;
+      }
+      if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        routesEl.dataset.layout = nextLayout;
+        return;
+      }
+
+      const cards = Array.from(routesEl.querySelectorAll(".route-card"));
+      if (!cards.length || typeof cards[0].animate !== "function") {
+        routesEl.dataset.layout = nextLayout;
+        return;
+      }
+
+      const firstRects = new Map();
+      for (const card of cards) {
+        firstRects.set(card.dataset.routeCardId || "", card.getBoundingClientRect());
+      }
+
+      routesEl.dataset.layout = nextLayout;
+
+      for (const card of cards) {
+        const key = card.dataset.routeCardId || "";
+        const first = firstRects.get(key);
+        const last = card.getBoundingClientRect();
+        if (!first || !last.width || !last.height) continue;
+
+        const deltaX = first.left - last.left;
+        const deltaY = first.top - last.top;
+        const scaleX = first.width / last.width;
+        const scaleY = first.height / last.height;
+        const moved =
+          Math.abs(deltaX) > 1 ||
+          Math.abs(deltaY) > 1 ||
+          Math.abs(scaleX - 1) > 0.01 ||
+          Math.abs(scaleY - 1) > 0.01;
+        if (!moved) continue;
+
+        card.animate(
+          [
+            {
+              transform: `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`,
+              transformOrigin: "top left",
+              opacity: 0.92,
+            },
+            {
+              transform: "translate(0, 0) scale(1, 1)",
+              transformOrigin: "top left",
+              opacity: 1,
+            },
+          ],
+          {
+            duration: 320,
+            easing: "cubic-bezier(.22, 1, .36, 1)",
+          }
+        );
+      }
+    }
+
+    function applyRouteLayout(layout, persist = false, animate = true) {
+      const nextLayout = layout === "single" ? "single" : "double";
+      state.routeLayout = nextLayout;
+      if (animate) {
+        animateRouteLayoutTransition(nextLayout);
+      } else {
+        routesEl.dataset.layout = nextLayout;
+      }
+      if (layoutTrack) {
+        layoutTrack.dataset.layoutCurrent = nextLayout;
+        layoutTrack.setAttribute("aria-label", `当前${nextLayout === "single" ? "单列" : "双列"}，点击切换到${nextLayout === "single" ? "双列" : "单列"}`);
+      }
+      if (layoutCurrentLabel) {
+        layoutCurrentLabel.textContent = nextLayout === "single" ? "单列" : "双列";
+      }
+      if (layoutNextLabel) {
+        layoutNextLabel.textContent = nextLayout === "single" ? "双列" : "单列";
+      }
+      if (persist) {
+        try {
+          localStorage.setItem(layoutStorageKey, nextLayout);
+        } catch { }
+      }
     }
 
     function normalizeSecurityMode(mode) {
@@ -3473,7 +3881,7 @@
         const stateBadgeText = route.enabled ? "Enabled" : "Disabled";
 
         return `
-          <article class="route-card" style="animation-delay:${Math.min(index * 35, 240)}ms">
+          <article class="route-card" data-route-card-id="${route.id}" style="animation-delay:${Math.min(index * 35, 240)}ms">
             <div class="route-top">
               <div>
                 <p class="route-path">/${escapeHtmlJs(route.slug)}</p>
@@ -3849,7 +4257,12 @@
       });
     }
 
+    layoutTrack?.addEventListener("click", () => {
+      applyRouteLayout(state.routeLayout === "single" ? "double" : "single", true);
+    });
+
     applyTheme(readThemeMode());
+    applyRouteLayout(readRouteLayout(), false, false);
     resetForm();
     renderSecurityMode();
     renderFilterState();
