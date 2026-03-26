@@ -2220,7 +2220,6 @@
 
             <div class="form-actions">
               <button type="submit" class="btn btn-primary" id="submitBtn">保存路由</button>
-              <button type="button" class="btn btn-secondary" id="duplicateBtn">复制为新路由</button>
             </div>
             <div id="status" class="status"></div>
           </form>
@@ -2337,7 +2336,6 @@
     const userAgentCustomInput = document.getElementById("userAgentCustomInput");
     const optionsHint = document.getElementById("optionsHint");
     const resetBtn = document.getElementById("resetBtn");
-    const duplicateBtn = document.getElementById("duplicateBtn");
     const newRouteBtn = document.getElementById("newRouteBtn");
     const securityModeBtn = document.getElementById("securityModeBtn");
     const searchField = document.getElementById("searchField");
@@ -2934,7 +2932,6 @@
           field.disabled = disabled;
         }
       }
-      duplicateBtn.disabled = disabled;
       newRouteBtn.disabled = disabled;
       closeModalBtn.disabled = disabled;
     }
@@ -3467,17 +3464,6 @@
     });
 
     resetBtn.addEventListener("click", resetForm);
-    duplicateBtn.addEventListener("click", () => {
-      if (!state.editingId) {
-        setStatus("先选一条已有路由再复制", "error");
-        return;
-      }
-      const route = state.routes.find((item) => item.id === state.editingId);
-      if (!route) return;
-      fillForm(route, true);
-      setStatus("已准备复制当前路由", "success");
-    });
-
     newRouteBtn.addEventListener("click", () => {
       resetForm();
       openRouteModal();
