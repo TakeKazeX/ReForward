@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReForward Setup</title>
+  <script>
+    (() => {
+      const storageKey = "reforward-theme-mode";
+      let mode = "system";
+      try {
+        mode = localStorage.getItem(storageKey) || "system";
+      } catch {}
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const resolved = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.dataset.themeMode = mode;
+    })();
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      color-scheme:light;
+      --bg:#f4f4f1;
+      --bg-accent:#e7efe8;
+      --bg-top:#fafaf8;
+      --bg-orb-1:rgba(255,255,255,.92);
+      --bg-orb-2:rgba(11,102,214,.08);
+      --surface:rgba(255,255,255,.84);
+      --surface-soft:rgba(255,255,255,.62);
+      --surface-border:rgba(18,25,22,.08);
+      --text:#121916;
+      --text-secondary:rgba(18,25,22,.66);
+      --accent:#0b66d6;
+      --accent-hover:#177cf0;
+      --danger:#b03128;
+      --danger-bg:rgba(176,49,40,.12);
+      --danger-border:rgba(176,49,40,.24);
+      --seg-track-bg:rgba(214,220,226,.92);
+      --seg-track-border:rgba(113,124,136,.18);
+      --seg-track-shadow:inset 0 1px 0 rgba(255,255,255,.74),inset 0 -1px 0 rgba(113,124,136,.14);
+      --seg-thumb-bg:linear-gradient(180deg,rgba(255,255,255,.98),rgba(232,237,242,.86));
+      --seg-thumb-border:rgba(140,150,162,.22);
+      --seg-thumb-shadow:inset 0 1px 0 rgba(255,255,255,.62),0 2px 6px rgba(10,16,18,.14);
+      --input-bg:rgba(255,255,255,.86);
+      --input-border:rgba(18,25,22,.12);
+      --input-focus:rgba(11,102,214,.18);
+      --shadow:0 18px 32px rgba(24,34,29,.06);
+      --radius:22px;
+      --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Segoe UI",sans-serif;
+    }
+    :root[data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#0f1415;
+      --bg-accent:#0b1011;
+      --bg-top:#14191a;
+      --bg-orb-1:rgba(86,107,255,.16);
+      --bg-orb-2:rgba(39,168,255,.12);
+      --surface:rgba(18,24,26,.84);
+      --surface-soft:rgba(255,255,255,.04);
+      --surface-border:rgba(255,255,255,.08);
+      --text:#eef4f1;
+      --text-secondary:rgba(238,244,241,.68);
+      --accent:#69a8ff;
+      --accent-hover:#82b9ff;
+      --danger:#ff8c83;
+      --danger-bg:rgba(255,140,131,.14);
+      --danger-border:rgba(255,140,131,.24);
+      --seg-track-bg:rgba(36,44,47,.94);
+      --seg-track-border:rgba(255,255,255,.08);
+      --seg-track-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.22);
+      --seg-thumb-bg:linear-gradient(180deg,rgba(136,146,157,.82),rgba(92,101,111,.58));
+      --seg-thumb-border:rgba(255,255,255,.12);
+      --seg-thumb-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 8px rgba(0,0,0,.32);
+      --input-bg:rgba(255,255,255,.06);
+      --input-border:rgba(255,255,255,.1);
+      --input-focus:rgba(105,168,255,.35);
+      --shadow:0 20px 42px rgba(0,0,0,.26);
+    }
+    body{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 8% 0%,var(--bg-orb-1),transparent 28%),
+        radial-gradient(circle at 85% 16%,var(--bg-orb-2),transparent 28%),
+        linear-gradient(180deg,var(--bg-top) 0%,var(--bg) 48%,var(--bg-accent) 100%);
+      color:var(--text);
+      font-family:var(--font);
+      -webkit-font-smoothing:antialiased;
+      padding:24px;
+    }
+    .seg-control{
+      position:fixed;top:24px;right:24px;z-index:2;
+      display:inline-grid;grid-auto-flow:column;gap:2px;padding:4px;
+      border:1px solid var(--seg-track-border);border-radius:999px;
+      background:var(--seg-track-bg);box-shadow:var(--seg-track-shadow),var(--shadow);overflow:hidden;
+    }
+    .seg-thumb{
+      position:absolute;top:0;left:0;z-index:0;width:0;height:0;border-radius:999px;
+      background:var(--seg-thumb-bg);border:1px solid var(--seg-thumb-border);box-shadow:var(--seg-thumb-shadow);pointer-events:none
+    }
+    .seg-thumb.ready{transition:transform .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1)}
+    .seg-btn{
+      position:relative;z-index:1;min-width:68px;padding:9px 14px;border:0;border-radius:999px;
+      background:transparent;color:var(--text-secondary);font:600 12px/1 var(--font);cursor:pointer
+    }
+    .seg-btn.active{color:var(--text)}
+    .card{
+      width:min(92vw,680px);padding:44px 36px 36px;border:1px solid var(--surface-border);
+      border-radius:var(--radius);background:var(--surface);backdrop-filter:saturate(180%) blur(20px);
+      -webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:var(--shadow)
+    }
+    .logo{
+      width:40px;height:40px;margin-bottom:24px;border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),#00c7ff);display:grid;place-items:center;
+      font-size:18px;font-weight:700;color:#fff;letter-spacing:-.02em
+    }
+    h1{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:8px}
+    .subtitle{color:var(--text-secondary);font-size:15px;line-height:1.65;margin-bottom:28px}
+    .error{
+      padding:12px 16px;border-radius:12px;background:var(--danger-bg);border:1px solid var(--danger-border);
+      color:var(--danger);font-size:14px;line-height:1.5;margin-bottom:20px
+    }
+    form{display:grid;gap:18px}
+    .stack{display:grid;gap:16px}
+    .group{
+      display:grid;gap:12px;padding:18px;border:1px solid var(--surface-border);
+      border-radius:18px;background:var(--surface-soft)
+    }
+    .group-title{font-size:14px;font-weight:700}
+    .group-note{font-size:13px;color:var(--text-secondary);line-height:1.6}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .field-stack{display:grid;gap:8px}
+    label{display:grid;gap:8px;font-size:13px;font-weight:600;color:var(--text-secondary)}
+    input,textarea{
+      width:100%;padding:14px 16px;border:1px solid var(--input-border);border-radius:12px;
+      background:var(--input-bg);color:var(--text);font:16px var(--font);outline:none
+    }
+    textarea{min-height:120px;resize:vertical}
+    input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--input-focus)}
+    .prefix-input{
+      display:flex;align-items:center;min-height:54px;border:1px solid var(--input-border);
+      border-radius:12px;background:var(--input-bg);overflow:hidden
+    }
+    .prefix-label{
+      flex:0 0 auto;padding:0 0 0 16px;font-size:15px;font-weight:600;color:var(--text-secondary);white-space:nowrap
+    }
+    .prefix-input input{
+      border:0;background:transparent;box-shadow:none;padding-left:8px
+    }
+    .prefix-input:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--input-focus)}
+    .mode-grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mode-card{position:relative}
+    .mode-card input{position:absolute;opacity:0;pointer-events:none}
+    .mode-card label{
+      height:100%;padding:16px;border-radius:16px;border:1px solid var(--input-border);
+      background:var(--input-bg);cursor:pointer;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease
+    }
+    .mode-card label:hover{transform:translateY(-1px)}
+    .mode-card input:checked + label{border-color:var(--accent);box-shadow:0 0 0 3px var(--input-focus)}
+    .mode-name{font-size:16px;color:var(--text);font-weight:700}
+    .mode-desc{font-size:13px;line-height:1.6}
+    .mode-panels{display:grid;gap:12px}
+    .mode-panel{display:none}
+    .mode-panel.active{display:grid;gap:12px}
+    button[type="submit"]{
+      width:100%;padding:14px;border:none;border-radius:12px;background:var(--accent);
+      color:#fff;font:600 16px var(--font);cursor:pointer
+    }
+    button[type="submit"]:hover{background:var(--accent-hover)}
+    .footer{margin-top:24px;padding-top:18px;border-top:1px solid var(--surface-border);font-size:12px;color:var(--text-secondary);line-height:1.8}
+    .footer span{opacity:.5}
+    @media (max-width:720px){
+      .seg-control{top:16px;right:16px;left:16px}
+      .seg-btn{min-width:0;width:100%}
+      .card{padding:40px 24px 24px}
+      .grid,.mode-grid{grid-template-columns:1fr}
+    }
+    .schema-overlay {
+      position:fixed;inset:0;z-index:100;
+      background:rgba(0,0,0,0.5);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      display:grid;place-items:center;padding:24px;
+    }
+    .schema-overlay[hidden] { display:none; }
+    .schema-dialog {
+      background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius);
+      padding:40px 32px;width:min(90vw,480px);max-height:90vh;display:flex;flex-direction:column;
+      box-shadow:var(--shadow);text-align:center;
+    }
+    .schema-dialog h3 { font-size:20px;font-weight:700;margin-bottom:12px;letter-spacing:-0.01em;flex-shrink:0; }
+    .schema-dialog p { color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:28px;flex-shrink:0; }
+    .schema-cmd {
+      position:relative;background:var(--input-bg);border:1px solid var(--input-border);border-radius:12px;
+      padding:16px;text-align:left;font-size:12px;color:var(--text);overflow:hidden;
+      display:flex;flex-direction:column;min-height:0;flex:1;
+    }
+    .schema-cmd pre { 
+      overflow:auto;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;line-height:1.5;
+    }
+    .schema-cmd button { 
+      position:absolute;top:12px;right:12px;padding:6px 12px;background:var(--surface);border:1px solid var(--surface-border);border-radius:8px;
+      color:var(--text);cursor:pointer;font-weight:600;font-size:12px;transition:opacity 0.2s;box-shadow:var(--shadow);
+    }
+    .schema-cmd button:hover { opacity:0.8; }
+  </style>
+</head>
+<body>
+  <div class="seg-control" id="setupThemeSwitch" aria-label="主题切换">
+    <span class="seg-thumb" id="setupThemeThumb" aria-hidden="true"></span>
+    <button type="button" class="seg-btn" data-theme-mode="light">亮色</button>
+    <button type="button" class="seg-btn" data-theme-mode="dark">暗色</button>
+    <button type="button" class="seg-btn" data-theme-mode="system">系统</button>
+  </div>
+  <main class="card">
+    <div class="logo">R</div>
+    <h1>首次初始化</h1>
+    <p class="subtitle">当前实例尚未写入后台路径、默认入口策略和控制台密码。初始化完成后，OOBE 会立即熔断，后续访问只会进入正式路由。</p>
+    {{ERROR_BLOCK}}
+    <form method="post" action="{{SETUP_POST_PATH}}">
+      <div class="stack">
+        <section class="group">
+          <div class="group-title">控制台</div>
+          <div class="group-note">后台路径会写入 D1，后续部署自动复用，不再依赖环境变量。</div>
+          <div class="field-stack">
+            <label for="backendPathInput">后台路径</label>
+            <div class="prefix-input">
+              <span class="prefix-label">{{REQUEST_ORIGIN}}/</span>
+              <input id="backendPathInput" name="backendPath" type="text" value="{{BACKEND_PATH_VALUE}}" placeholder="my-secret-path" autocomplete="off" required pattern="^[A-Za-z0-9._~-]+$" title="仅支持英文、数字和下划线中划线等基础字符，不能包含斜杠或特殊符号">
+            </div>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-title">默认入口策略</div>
+          <div class="group-note">首页 `/` 和所有未命中的公开路径都会按这里的策略响应。</div>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <input id="mode-site" name="fallbackMode" type="radio" value="site" {{SITE_MODE_CHECKED}}>
+              <label for="mode-site">
+                <span class="mode-name">默认站点</span>
+                <span class="mode-desc">像反代首页一样，把根路径和未命中路径代理到外部站点。</span>
+              </label>
+            </div>
+            <div class="mode-card">
+              <input id="mode-login" name="fallbackMode" type="radio" value="login" {{LOGIN_MODE_CHECKED}}>
+              <label for="mode-login">
+                <span class="mode-name">进入登录页</span>
+                <span class="mode-desc">不暴露真实目标，直接显示后台登录页。</span>
+              </label>
+            </div>
+            <div class="mode-card">
+              <input id="mode-text" name="fallbackMode" type="radio" value="text" {{TEXT_MODE_CHECKED}}>
+              <label for="mode-text">
+                <span class="mode-name">返回文本</span>
+                <span class="mode-desc">适合提示页、公告页、占位页。</span>
+              </label>
+            </div>
+            <div class="mode-card">
+              <input id="mode-status" name="fallbackMode" type="radio" value="status_code" {{STATUS_MODE_CHECKED}}>
+              <label for="mode-status">
+                <span class="mode-name">返回状态码</span>
+                <span class="mode-desc">直接返回 HTTP 状态码，不渲染目标页面。</span>
+              </label>
+            </div>
+          </div>
+          <div class="mode-panels">
+            <div class="mode-panel" data-mode-panel="site">
+              <div class="field-stack">
+                <label for="defaultRedirectInput">默认站点地址</label>
+                <div class="prefix-input">
+                  <span class="prefix-label">https://</span>
+                  <input id="defaultRedirectInput" name="defaultRedirectUrl" type="text" value="{{DEFAULT_REDIRECT_VALUE}}" placeholder="example.com">
+                </div>
+              </div>
+            </div>
+            <div class="mode-panel" data-mode-panel="text">
+              <label>
+                文本内容
+                <textarea name="defaultText" placeholder="例如：系统维护中，请稍后再试。">{{DEFAULT_TEXT_VALUE}}</textarea>
+              </label>
+            </div>
+            <div class="mode-panel" data-mode-panel="status_code">
+              <label>
+                HTTP 状态码
+                <input name="defaultStatusCode" type="number" min="100" max="599" step="1" value="{{DEFAULT_STATUS_CODE_VALUE}}" placeholder="404">
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-title">控制台密码</div>
+          <div class="group-note">密码只会以哈希形式写入 D1。每次 Worker 部署后，会话签名会自动轮换，旧登录状态失效。</div>
+          <div class="grid">
+            <label>
+              后台密码
+              <input name="password" type="password" autocomplete="new-password" placeholder="至少 8 位" required minlength="8">
+            </label>
+            <label>
+              确认密码
+              <input name="confirmPassword" type="password" autocomplete="new-password" placeholder="再次输入后台密码" required minlength="8">
+            </label>
+          </div>
+        </section>
+      </div>
+      <button type="submit">完成初始化并熔断 OOBE</button>
+    </form>
+    <div class="footer">
+      <div><span>●</span> 首次写入后，OOBE 入口会永久关闭，不接受二次覆盖</div>
+      <div><span>●</span> 后台路径、默认入口策略和密码哈希都会保存在 Cloudflare D1</div>
+    </div>
+  </main>
+  
+  <div class="schema-overlay" id="schemaOverlay" {{SCHEMA_HIDDEN}}>
+    <div class="schema-dialog">
+      <div class="logo" style="margin:0 auto 24px;">D1</div>
+      <h3>等待数据库初始化</h3>
+      <p>检测到绑定的 D1 数据库尚未创建数据表。<br>请在 Cloudflare Dashboard 控制台直接执行以下 SQL 语句完成初始化，或者在本地执行后关闭此弹窗。</p>
+      <div class="schema-cmd">
+        <button type="button" id="copySchemaBtn">复制</button>
+        <pre><code id="schemaCode">{{SCHEMA_SQL}}</code></pre>
+      </div>
+      <button type="button" id="closeSchemaBtn" style="margin-top:24px;width:100%;padding:14px;border:1px solid var(--surface-border);border-radius:12px;background:var(--surface-soft);color:var(--text);font:600 15px var(--font);cursor:pointer;transition:background 0.2s;">我已执行完毕，继续配置</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const storageKey = "reforward-theme-mode";
+      const track = document.getElementById("setupThemeSwitch");
+      const buttons = Array.from(track?.querySelectorAll("[data-theme-mode]") || []);
+      const thumb = document.getElementById("setupThemeThumb");
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const modeInputs = Array.from(document.querySelectorAll("input[name='fallbackMode']"));
+      const panels = Array.from(document.querySelectorAll("[data-mode-panel]"));
+      const schemaOverlay = document.getElementById("schemaOverlay");
+      const closeSchemaBtn = document.getElementById("closeSchemaBtn");
+
+      function readMode() {
+        try {
+          return localStorage.getItem(storageKey) || "system";
+        } catch {
+          return "system";
+        }
+      }
+      function resolveTheme(mode) {
+        return mode === "system" ? (media.matches ? "dark" : "light") : mode;
+      }
+      function applyTheme(mode, persist = false) {
+        if (persist) {
+          try {
+            localStorage.setItem(storageKey, mode);
+          } catch {}
+        }
+        document.documentElement.dataset.themeMode = mode;
+        document.documentElement.dataset.theme = resolveTheme(mode);
+        for (const button of buttons) {
+          button.classList.toggle("active", button.dataset.themeMode === mode);
+        }
+        updateThumb();
+      }
+      function updateThumb() {
+        const active = buttons.find((button) => button.classList.contains("active"));
+        if (!thumb || !active || !track) return;
+        const width = active.offsetWidth;
+        const height = active.offsetHeight;
+        if (!width || !height) {
+          requestAnimationFrame(updateThumb);
+          return;
+        }
+        thumb.style.width = width + "px";
+        thumb.style.height = height + "px";
+        thumb.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
+        if (!thumb.classList.contains("ready")) {
+          requestAnimationFrame(() => requestAnimationFrame(() => thumb.classList.add("ready")));
+        }
+      }
+      function syncPanels() {
+        const activeMode = modeInputs.find((input) => input.checked)?.value || "site";
+        for (const panel of panels) {
+          const isActive = panel.dataset.modePanel === activeMode;
+          panel.classList.toggle("active", isActive);
+          const fields = panel.querySelectorAll("input, textarea");
+          for (const field of fields) {
+            field.required = isActive;
+          }
+        }
+      }
+
+      for (const button of buttons) {
+        button.addEventListener("click", () => applyTheme(button.dataset.themeMode || "system", true));
+      }
+      for (const input of modeInputs) {
+        input.addEventListener("change", syncPanels);
+      }
+      if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", () => {
+          if ((document.documentElement.dataset.themeMode || "system") === "system") {
+            applyTheme("system");
+          }
+        });
+      }
+      window.addEventListener("resize", updateThumb);
+      window.addEventListener("load", updateThumb);
+      applyTheme(readMode());
+      const copyBtn = document.getElementById("copySchemaBtn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+          const code = document.getElementById("schemaCode");
+          if (!code) return;
+          navigator.clipboard.writeText(code.textContent).then(() => {
+            const original = copyBtn.textContent;
+            copyBtn.textContent = "已复制";
+            setTimeout(() => { copyBtn.textContent = original; }, 2000);
+          });
+        });
+      }
+      if (closeSchemaBtn && schemaOverlay) {
+        closeSchemaBtn.addEventListener("click", () => {
+          schemaOverlay.hidden = true;
+        });
+      }
+
+      syncPanels();
+      requestAnimationFrame(updateThumb);
+    })();
+  </script>
+</body>
+</html>

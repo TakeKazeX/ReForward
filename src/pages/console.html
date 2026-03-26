@@ -1,0 +1,3697 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReForward Console</title>
+  <script>
+    (() => {
+      const storageKey = "reforward-theme-mode";
+      let mode = "system";
+      try {
+        mode = localStorage.getItem(storageKey) || "system";
+      } catch { }
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const resolved = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.dataset.themeMode = mode;
+    })();
+  </script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: light;
+      --bg: #f4f4f1;
+      --bg-accent: #e7efe8;
+      --bg-top: #fafaf8;
+      --bg-orb-1: rgba(255, 255, 255, 0.92);
+      --bg-orb-2: rgba(11, 102, 214, 0.08);
+      --overlay-1: rgba(11, 102, 214, 0.06);
+      --overlay-2: rgba(22, 119, 78, 0.06);
+      --surface: rgba(255, 255, 255, 0.8);
+      --surface-soft: rgba(250, 251, 248, 0.9);
+      --surface-border: rgba(18, 25, 22, 0.08);
+      --surface-border-strong: rgba(18, 25, 22, 0.14);
+      --text: #121916;
+      --text-secondary: rgba(18, 25, 22, 0.66);
+      --text-tertiary: rgba(18, 25, 22, 0.42);
+      --accent: #0b66d6;
+      --accent-soft: rgba(11, 102, 214, 0.1);
+      --green: #16774e;
+      --green-soft: rgba(22, 119, 78, 0.12);
+      --red: #b03128;
+      --red-soft: rgba(176, 49, 40, 0.12);
+      --shadow-lg: 0 28px 64px rgba(24, 34, 29, 0.08);
+      --shadow-md: 0 18px 32px rgba(24, 34, 29, 0.06);
+      --soft-fill: rgba(255, 255, 255, 0.56);
+      --soft-fill-weak: rgba(255, 255, 255, 0.58);
+      --soft-fill-strong: rgba(255, 255, 255, 0.82);
+      --code-fill: rgba(18, 25, 22, 0.06);
+      --meta-fill: rgba(18, 25, 22, 0.05);
+      --filter-active-bg: #ffffff;
+      --filter-active-shadow: 0 8px 18px rgba(21, 31, 26, 0.08);
+      --scroll-thumb: rgba(18, 25, 22, 0.2);
+      --scroll-thumb-hover: rgba(18, 25, 22, 0.28);
+      --seg-track-bg: rgba(214, 220, 226, 0.92);
+      --seg-track-border: rgba(113, 124, 136, 0.18);
+      --seg-track-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74), inset 0 -1px 0 rgba(113, 124, 136, 0.14);
+      --seg-thumb-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 237, 242, 0.86));
+      --seg-thumb-border: rgba(140, 150, 162, 0.22);
+      --seg-thumb-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 2px 6px rgba(10, 16, 18, 0.14);
+      --slider-track-bg: rgba(190, 198, 206, 0.82);
+      --slider-track-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), inset 0 -1px 0 rgba(113, 124, 136, 0.14);
+      --security-fx-overlay-base: rgba(10, 14, 20, 0.58);
+      --security-fx-overlay-focus: rgba(255, 255, 255, 0.07);
+      --security-fx-overlay-vignette: rgba(0, 0, 0, 0.22);
+      --security-fx-sheen: rgba(200, 231, 255, 0.3);
+      --security-fx-ripple: rgba(134, 205, 255, 0.32);
+      --security-fx-shield-top: rgba(56, 76, 104, 0.95);
+      --security-fx-shield-mid: rgba(40, 56, 80, 0.96);
+      --security-fx-shield-low: rgba(22, 32, 50, 0.98);
+      --security-fx-shield-border: rgba(176, 225, 255, 0.98);
+      --security-fx-shield-inner-border: rgba(176, 225, 255, 0.28);
+      --security-fx-shield-shadow: rgba(0, 0, 0, 0.46);
+      --security-fx-shield-shadow-soft: rgba(120, 200, 255, 0.22);
+      --security-fx-text-color: rgba(223, 236, 252, 0.96);
+      --security-fx-text-shadow: rgba(104, 186, 255, 0.3);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+      --mono: "SF Mono", "JetBrains Mono", "SFMono-Regular", monospace;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0f1415;
+      --bg-accent: #0b1011;
+      --bg-top: #14191a;
+      --bg-orb-1: rgba(86, 107, 255, 0.16);
+      --bg-orb-2: rgba(39, 168, 255, 0.12);
+      --overlay-1: rgba(88, 135, 255, 0.14);
+      --overlay-2: rgba(50, 190, 140, 0.1);
+      --surface: rgba(18, 24, 26, 0.8);
+      --surface-soft: rgba(22, 29, 31, 0.92);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-border-strong: rgba(255, 255, 255, 0.14);
+      --text: #eef4f1;
+      --text-secondary: rgba(238, 244, 241, 0.68);
+      --text-tertiary: rgba(238, 244, 241, 0.42);
+      --accent: #69a8ff;
+      --accent-soft: rgba(105, 168, 255, 0.16);
+      --green: #58d09a;
+      --green-soft: rgba(88, 208, 154, 0.14);
+      --red: #ff8c83;
+      --red-soft: rgba(255, 140, 131, 0.14);
+      --shadow-lg: 0 32px 72px rgba(0, 0, 0, 0.34);
+      --shadow-md: 0 20px 42px rgba(0, 0, 0, 0.26);
+      --soft-fill: rgba(255, 255, 255, 0.06);
+      --soft-fill-weak: rgba(255, 255, 255, 0.08);
+      --soft-fill-strong: rgba(255, 255, 255, 0.1);
+      --code-fill: rgba(255, 255, 255, 0.08);
+      --meta-fill: rgba(255, 255, 255, 0.07);
+      --filter-active-bg: rgba(255, 255, 255, 0.12);
+      --filter-active-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      --scroll-thumb: rgba(255, 255, 255, 0.18);
+      --scroll-thumb-hover: rgba(255, 255, 255, 0.28);
+      --seg-track-bg: rgba(36, 44, 47, 0.94);
+      --seg-track-border: rgba(255, 255, 255, 0.08);
+      --seg-track-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+      --seg-thumb-bg: linear-gradient(180deg, rgba(136, 146, 157, 0.82), rgba(92, 101, 111, 0.58));
+      --seg-thumb-border: rgba(255, 255, 255, 0.12);
+      --seg-thumb-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 3px 8px rgba(0, 0, 0, 0.32);
+      --slider-track-bg: rgba(58, 66, 70, 0.92);
+      --slider-track-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+      --security-fx-overlay-base: rgba(5, 7, 10, 0.76);
+      --security-fx-overlay-focus: rgba(255, 255, 255, 0.06);
+      --security-fx-overlay-vignette: rgba(255, 255, 255, 0.06);
+      --security-fx-sheen: rgba(180, 224, 255, 0.24);
+      --security-fx-ripple: rgba(142, 206, 255, 0.34);
+      --security-fx-shield-top: rgba(66, 88, 120, 0.96);
+      --security-fx-shield-mid: rgba(44, 62, 88, 0.98);
+      --security-fx-shield-low: rgba(26, 38, 58, 0.98);
+      --security-fx-shield-border: rgba(182, 228, 255, 0.96);
+      --security-fx-shield-inner-border: rgba(178, 226, 255, 0.24);
+      --security-fx-shield-shadow: rgba(0, 0, 0, 0.58);
+      --security-fx-shield-shadow-soft: rgba(126, 202, 255, 0.2);
+      --security-fx-text-color: rgba(228, 240, 255, 0.96);
+      --security-fx-text-shadow: rgba(92, 176, 255, 0.34);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, var(--bg-orb-1), transparent 28%),
+        radial-gradient(circle at 85% 16%, var(--bg-orb-2), transparent 28%),
+        linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 48%, var(--bg-accent) 100%);
+      background-attachment: fixed;
+      font: 15px/1.5 var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 16% 10%, var(--overlay-1), transparent 22%),
+        radial-gradient(circle at 82% 86%, var(--overlay-2), transparent 22%);
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1320px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 18px 0 52px;
+      animation: page-in .5s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    @keyframes page-in {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+    }
+
+    .topbar {
+      position: sticky;
+      top: 14px;
+      z-index: 20;
+      margin-bottom: 22px;
+    }
+
+    .topbar-inner,
+    .panel,
+    .modal-card {
+      border: 1px solid var(--surface-border);
+      background: var(--surface);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-badge {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #0b66d6, #2cb6ff);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 14px 28px rgba(11, 102, 214, 0.18);
+    }
+
+    .brand-copy p {
+      margin: 0;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-copy h1 {
+      margin: 2px 0 0;
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--surface-border);
+      border-radius: 999px;
+      background: var(--soft-fill);
+      color: var(--text-secondary);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .pill code {
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--code-fill);
+      color: var(--text);
+      font: 11px var(--mono);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .seg-control {
+      position: relative;
+      display: inline-grid;
+      grid-auto-flow: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border: 1px solid var(--seg-track-border);
+      border-radius: 999px;
+      background: var(--seg-track-bg);
+      box-shadow: var(--seg-track-shadow);
+      overflow: hidden;
+    }
+
+    .seg-control .seg-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      width: 0;
+      height: 0;
+      border-radius: 999px;
+      background: var(--seg-thumb-bg);
+      border: 1px solid var(--seg-thumb-border);
+      box-shadow: var(--seg-thumb-shadow);
+      pointer-events: none;
+      will-change: transform, width;
+    }
+
+    .seg-control .seg-thumb.ready {
+      transition:
+        transform .32s cubic-bezier(.22, 1, .36, 1),
+        width .32s cubic-bezier(.22, 1, .36, 1),
+        height .32s cubic-bezier(.22, 1, .36, 1),
+        background .28s ease,
+        box-shadow .28s ease;
+    }
+
+    .theme-switch {
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    .seg-control .seg-btn {
+      position: relative;
+      z-index: 1;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: color .18s ease, transform .18s ease;
+    }
+
+    .seg-control .seg-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .seg-control .seg-btn.active {
+      color: var(--text);
+    }
+
+    .theme-switch:focus-within {
+      box-shadow:
+        var(--seg-track-shadow),
+        0 0 0 4px rgba(11, 102, 214, 0.14);
+    }
+
+    .theme-switch .seg-btn {
+      min-width: 58px;
+      padding: 9px 14px;
+      font: 600 12px/1 var(--font);
+      letter-spacing: .01em;
+    }
+
+    body,
+    body::before,
+    .topbar-inner,
+    .panel,
+    .modal-card,
+    .seg-control,
+    .pill,
+    .pill code,
+    .btn,
+    input,
+    textarea,
+    select,
+    .filter-group,
+    .filter-chip,
+    .route-card,
+    .meta-chip,
+    .route-notes,
+    .empty,
+    .schema-help,
+    .schema-help code,
+    .editor-footnote,
+    .editor-footnote code,
+    .field-panel,
+    .advanced-panel,
+    .kind-card,
+    .inline-panel,
+    .length-pill,
+    .switch,
+    .ua-trigger,
+    .ua-menu {
+      transition:
+        background .7s ease,
+        background-color .7s ease,
+        color .7s ease,
+        border-color .7s ease,
+        box-shadow .7s ease;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      font: 600 14px var(--font);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0b66d6, #177cf0);
+      color: white;
+      box-shadow: 0 12px 24px rgba(11, 102, 214, 0.18);
+    }
+
+    .btn-secondary {
+      background: var(--soft-fill);
+      border-color: var(--surface-border-strong);
+    }
+
+    .btn-danger {
+      background: var(--soft-fill);
+      border-color: rgba(176, 49, 40, 0.16);
+      color: var(--red);
+    }
+
+    .security-trigger {
+      position: relative;
+      padding-right: 14px;
+    }
+
+    .security-trigger::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(22, 119, 78, 0.26);
+      transition: background .2s ease, box-shadow .2s ease;
+    }
+
+    .security-trigger.on {
+      color: var(--red);
+      border-color: rgba(176, 49, 40, 0.18);
+      background: rgba(176, 49, 40, 0.1);
+    }
+
+    .security-trigger.on::before {
+      background: var(--red);
+      box-shadow: 0 0 0 4px rgba(176, 49, 40, 0.14);
+    }
+
+    .overview {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 22px;
+    }
+
+    .panel {
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .metric-card {
+      padding: 18px 20px;
+    }
+
+    .metric-card p {
+      margin: 0;
+    }
+
+    .metric-label {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: clamp(28px, 4vw, 38px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      font-weight: 700;
+    }
+
+    .metric-value.accent {
+      color: var(--accent);
+    }
+
+    .metric-value.green {
+      color: var(--green);
+    }
+
+    .metric-note {
+      margin-top: 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+
+    .workspace-main {
+      padding: 22px;
+    }
+
+    .section-head,
+    .controls {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-head {
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .controls {
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .security-editor {
+      display: grid;
+      gap: 14px;
+    }
+
+    .security-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .security-head h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .security-head-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-theme-switch {
+      flex: 1 1 220px;
+      max-width: 260px;
+      min-width: 190px;
+    }
+
+    .security-summary {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .security-state-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .security-state-pill.on {
+      color: var(--red);
+      background: var(--red-soft);
+      border-color: rgba(176, 49, 40, 0.22);
+    }
+
+    .security-state-pill.off {
+      color: var(--green);
+      background: var(--green-soft);
+      border-color: rgba(22, 119, 78, 0.2);
+    }
+
+    .security-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+
+    .security-grid .editor-wide {
+      grid-column: 1 / -1;
+    }
+
+    .security-grid textarea {
+      min-height: 84px;
+    }
+
+    .security-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .security-note {
+      margin: 0;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .settings-divider {
+      border: none;
+      border-top: 1px solid var(--surface-border-strong);
+      margin: 0;
+    }
+
+    .settings-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .settings-group {
+      background: var(--surface-soft);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
+    }
+    .settings-group-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+    }
+    .settings-group-item + .settings-group-item {
+      border-top: 1px solid var(--surface-border);
+    }
+    .settings-group-item label {
+      margin: 0;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .settings-group-item input, .settings-group-item select {
+      flex: 1;
+      border: none;
+      background: transparent;
+      text-align: right;
+      padding: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      outline: none;
+      box-shadow: none;
+      min-width: 0; 
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .settings-group-item select {
+      direction: rtl;
+      cursor: pointer;
+    }
+    .settings-group-item input:focus, .settings-group-item select:focus {
+      color: var(--text);
+    }
+    .settings-group-item input::placeholder {
+      color: var(--text-tertiary);
+      opacity: 0.7;
+    }
+
+    .security-popover {
+      position: absolute;
+      width: min(580px, calc(100vw - 32px));
+      background: rgba(255, 255, 255, 0.54);
+      border: 1px solid var(--surface-border-strong);
+      border-radius: 20px;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(48px) saturate(220%);
+      -webkit-backdrop-filter: blur(48px) saturate(220%);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px) scale(0.96);
+      transform-origin: top right;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+      z-index: 100;
+      padding: 24px;
+      cursor: auto;
+    }
+
+    :root[data-theme="dark"] .security-popover {
+      background: rgba(28, 36, 40, 0.46);
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .security-popover.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    .security-fx {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: opacity 0.4s ease, visibility 0.4s;
+      --security-fx-duration: 2s;
+    }
+
+    .security-fx.play {
+      visibility: visible;
+      opacity: 1;
+      animation: security-fx-fade var(--security-fx-duration) ease-in-out forwards;
+    }
+
+    .security-fx-core {
+      position: relative;
+      width: min(40vmin, 320px);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .security-fx-shield {
+      width: 100%;
+      height: 100%;
+      filter:
+        drop-shadow(0 0 12px rgba(136, 212, 255, 0.6)) drop-shadow(0 0 32px rgba(136, 212, 255, 0.3));
+      transform: scale(0.85);
+      opacity: 0;
+    }
+
+    .shield-outline,
+    .shield-line {
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+    }
+
+    .shield-dot {
+      opacity: 0;
+      transform: scale(0.4);
+      transform-origin: center;
+    }
+
+    .security-fx.play .security-fx-shield {
+      animation: shield-pop var(--security-fx-duration) cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    .security-fx.play .shield-outline,
+    .security-fx.play .shield-line {
+      animation: shield-draw 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .security-fx.play .shield-dot {
+      animation: dot-pop 0.4s 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    .security-fx-text {
+      margin-top: 4vh;
+      font: 700 clamp(16px, 2.5vw, 24px) / 1 var(--mono);
+      letter-spacing: 0.18em;
+      color: #bce4ff;
+      text-shadow: 0 0 16px rgba(136, 212, 255, 0.6);
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .security-fx.play .security-fx-text {
+      animation: text-pop var(--security-fx-duration) ease-out forwards;
+    }
+
+    @keyframes security-fx-fade {
+      0% {
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 1;
+      }
+
+      85% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes shield-pop {
+      0% {
+        transform: scale(0.6);
+        opacity: 0;
+        filter: drop-shadow(0 0 0 rgba(136, 212, 255, 0));
+      }
+
+      20% {
+        transform: scale(1.05);
+        opacity: 1;
+        filter: drop-shadow(0 0 24px rgba(136, 212, 255, 0.8)) drop-shadow(0 0 64px rgba(136, 212, 255, 0.4));
+      }
+
+      40% {
+        transform: scale(0.96);
+        filter: drop-shadow(0 0 16px rgba(136, 212, 255, 0.6)) drop-shadow(0 0 42px rgba(136, 212, 255, 0.3));
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+        filter: drop-shadow(0 0 20px rgba(136, 212, 255, 0.7)) drop-shadow(0 0 48px rgba(136, 212, 255, 0.35));
+      }
+    }
+
+    @keyframes shield-draw {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes dot-pop {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes text-pop {
+      0% {
+        opacity: 0;
+        transform: translateY(16px);
+        letter-spacing: 0.25em;
+      }
+
+      25% {
+        opacity: 1;
+        transform: translateY(0);
+        letter-spacing: 0.18em;
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        letter-spacing: 0.18em;
+      }
+    }
+
+    .search {
+      position: relative;
+      flex: 1 1 280px;
+      min-width: 220px;
+    }
+
+    .search::before {
+      content: "⌕";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--surface-border-strong);
+      border-radius: 14px;
+      background: var(--soft-fill-strong);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(11, 102, 214, 0.42);
+      box-shadow: 0 0 0 4px rgba(11, 102, 214, 0.1);
+      background: var(--surface-soft);
+    }
+
+    input,
+    select {
+      padding: 12px 14px;
+    }
+
+    textarea {
+      min-height: 108px;
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    .search input {
+      padding-left: 38px;
+    }
+
+    .filter-group .seg-btn {
+      padding: 9px 12px;
+      font: 600 13px var(--font);
+    }
+
+    .filter-chip.active {
+      color: var(--text);
+    }
+
+    .route-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .route-card {
+      padding: 18px;
+      border: 1px solid var(--surface-border);
+      border-radius: 22px;
+      background: var(--surface-soft);
+      display: grid;
+      gap: 14px;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+      animation: card-in .32s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    @keyframes card-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.985);
+      }
+    }
+
+    .route-card:hover {
+      transform: translateY(-1px);
+      border-color: var(--surface-border-strong);
+      box-shadow: 0 18px 30px rgba(20, 32, 28, 0.05);
+    }
+
+    .route-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .route-path {
+      margin: 0;
+      font: 700 18px var(--mono);
+      letter-spacing: -0.03em;
+      word-break: break-all;
+    }
+
+    .route-target {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-all;
+    }
+
+    .route-badges,
+    .route-meta,
+    .route-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge,
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-kind {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .badge-on {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .badge-off {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .meta-chip {
+      border-radius: 12px;
+      background: var(--meta-fill);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .route-notes {
+      padding: 11px 14px;
+      border-radius: 16px;
+      background: var(--soft-fill-weak);
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .empty,
+    .schema-help {
+      margin-top: 14px;
+      padding: 18px;
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      background: var(--soft-fill-weak);
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .empty[hidden] {
+      display: none;
+    }
+
+    .schema-help strong,
+    .editor-footnote strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .schema-help code,
+    .editor-footnote code {
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: var(--code-fill);
+      color: var(--text);
+      font: 12px var(--mono);
+    }
+
+    .schema-help .btn {
+      margin-top: 12px;
+    }
+
+    .modal-shell {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 94px 24px 24px;
+      z-index: 90;
+    }
+
+    .modal-shell.open {
+      display: flex;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 24, 20, 0.24);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+    }
+
+    .modal-shell.open .modal-backdrop {
+      animation: modal-backdrop-in .22s ease forwards;
+    }
+
+    .modal-card {
+      position: relative;
+      width: min(760px, calc(100vw - 32px));
+      max-height: calc(100vh - 118px);
+      overflow: hidden;
+      border: 1px solid var(--surface-border-strong);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.56);
+      box-shadow: 0 32px 64px rgba(20, 32, 28, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.42);
+      backdrop-filter: blur(42px) saturate(220%);
+      -webkit-backdrop-filter: blur(42px) saturate(220%);
+      transform: translateY(-8px) scale(.965);
+      opacity: 0;
+      transform-origin: top right;
+    }
+
+    :root[data-theme="dark"] .modal-card {
+      background: rgba(28, 36, 40, 0.48);
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.36), inset 0 1px 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-shell.open .modal-card {
+      animation: modal-card-in .3s cubic-bezier(.16, 1, .3, 1) forwards;
+    }
+
+    @keyframes modal-backdrop-in {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes modal-card-in {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .editor-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-scroll {
+      max-height: calc(100vh - 118px);
+      overflow: auto;
+      padding: 18px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) transparent;
+    }
+
+    .modal-scroll::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .modal-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .modal-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 999px;
+      background: var(--scroll-thumb);
+      background-clip: padding-box;
+    }
+
+    .modal-scroll::-webkit-scrollbar-thumb:hover {
+      background: var(--scroll-thumb-hover);
+      background-clip: padding-box;
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid rgba(20, 32, 28, 0.08);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(246, 248, 252, 0.72));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .editor-kicker {
+      margin: 0 0 8px;
+      color: var(--text-tertiary);
+      font: 600 11px var(--mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .editor-header h3 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .editor-header p {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .route-header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .editor-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .editor-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .editor-wide {
+      grid-column: 1 / -1;
+    }
+
+    .field-panel,
+    .advanced-panel,
+    .kind-context,
+    .editor-footnote {
+      padding: 16px;
+      border: 1px solid rgba(20, 32, 28, 0.08);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    }
+
+    .form-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-section-head strong {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: -0.02em;
+    }
+
+    .form-section-head span {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .kind-picker {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 8px;
+      border: 1px solid rgba(20, 32, 28, 0.08);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 250, 0.92));
+    }
+
+    .kind-card {
+      display: grid;
+      gap: 8px;
+      min-height: 106px;
+      padding: 18px 20px;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.74);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .kind-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(20, 32, 28, 0.1);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 24px rgba(20, 32, 28, 0.05);
+    }
+
+    .kind-card.active {
+      border-color: rgba(11, 102, 214, 0.24);
+      background: linear-gradient(180deg, rgba(250, 252, 255, 0.98), rgba(239, 245, 255, 0.98));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 12px 24px rgba(11, 102, 214, 0.08);
+    }
+
+    .kind-card strong {
+      color: var(--text);
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      text-transform: none;
+    }
+
+    .kind-card span,
+    .kind-context-desc,
+    .field-help,
+    .editor-footnote {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.65;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .kind-context-title {
+      margin: 0 0 6px;
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .kind-context-desc {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .field-help {
+      margin: 8px 0 0;
+    }
+
+    .field-help.field-error-text {
+      color: var(--red);
+    }
+
+    .input-invalid {
+      border-color: rgba(176, 49, 40, 0.36) !important;
+      box-shadow: 0 0 0 4px rgba(176, 49, 40, 0.12) !important;
+    }
+
+    .slug-field {
+      gap: 10px;
+    }
+
+    .field-inline {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .field-inline>input {
+      min-width: 0;
+    }
+
+    .field-inline>input.is-randomizing {
+      border-color: rgba(11, 102, 214, 0.26);
+      box-shadow: 0 0 0 4px rgba(11, 102, 214, 0.08);
+      letter-spacing: 0.04em;
+      transition: border-color .18s ease, box-shadow .18s ease, letter-spacing .18s ease;
+    }
+
+    .target-prefix {
+      display: flex;
+      align-items: center;
+      min-height: 56px;
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      background: var(--soft-fill-strong);
+      overflow: hidden;
+    }
+
+    .target-prefix span {
+      flex: 0 0 auto;
+      padding: 0 0 0 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .target-prefix input {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      padding-left: 8px;
+    }
+
+    .target-prefix:focus-within {
+      border-color: rgba(11, 102, 214, 0.26);
+      box-shadow: 0 0 0 4px rgba(11, 102, 214, 0.08);
+    }
+
+    .target-prefix.input-invalid:focus-within {
+      border-color: rgba(176, 49, 40, 0.36);
+      box-shadow: 0 0 0 4px rgba(176, 49, 40, 0.12);
+    }
+
+    .inline-action {
+      min-width: 110px;
+      white-space: nowrap;
+    }
+
+    .inline-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      background: var(--soft-fill-weak);
+      animation: section-in .24s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .length-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .length-row input[type="range"] {
+      width: 100%;
+      height: 34px;
+      margin: 0;
+      background: transparent;
+      appearance: none;
+      -webkit-appearance: none;
+      --range-progress: 25%;
+    }
+
+    .length-row input[type="range"]::-webkit-slider-runnable-track {
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) 0 var(--range-progress), var(--slider-track-bg) var(--range-progress) 100%);
+      box-shadow: var(--slider-track-shadow);
+    }
+
+    .length-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      margin-top: -6px;
+      border: 1px solid var(--seg-thumb-border);
+      border-radius: 999px;
+      background: var(--seg-thumb-bg);
+      box-shadow: var(--seg-thumb-shadow);
+    }
+
+    .length-row input[type="range"]::-moz-range-track {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--slider-track-bg);
+      box-shadow: var(--slider-track-shadow);
+    }
+
+    .length-row input[type="range"]::-moz-range-progress {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .length-row input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--seg-thumb-border);
+      border-radius: 999px;
+      background: var(--seg-thumb-bg);
+      box-shadow: var(--seg-thumb-shadow);
+    }
+
+    .length-pill {
+      display: inline-grid;
+      align-items: center;
+      grid-template-columns: 68px auto;
+      gap: 10px;
+      min-width: 124px;
+      padding: 8px 12px;
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      background: var(--soft-fill-strong);
+      color: var(--text);
+    }
+
+    .length-pill input {
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      text-align: right;
+      font: 600 13px var(--mono);
+      outline: none;
+      box-shadow: none;
+    }
+
+    .length-pill span {
+      font: 600 13px var(--mono);
+      white-space: nowrap;
+    }
+
+    .length-pill.warning {
+      border-color: rgba(176, 49, 40, 0.16);
+      background: rgba(176, 49, 40, 0.08);
+      color: var(--red);
+    }
+
+    .length-pill.warning input,
+    .length-pill.warning span {
+      color: var(--red);
+    }
+
+    .inline-warning {
+      margin: 0;
+      color: var(--red);
+      font-size: 12px;
+      line-height: 1.6;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    #targetWrap:not([hidden]),
+    #contentWrap:not([hidden]),
+    #userAgentPanel:not([hidden]) {
+      animation: section-in .24s cubic-bezier(.16, 1, .3, 1);
+      transform-origin: top;
+    }
+
+    @keyframes section-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+
+    .advanced-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .advanced-toggle-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .advanced-toggle-copy strong {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: -0.02em;
+    }
+
+    .advanced-toggle-copy span {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .advanced-toggle-icon {
+      color: var(--text-tertiary);
+      font-size: 18px;
+      transition: transform .18s ease;
+    }
+
+    .advanced-panel.open .advanced-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .advanced-body {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .advanced-panel.open .advanced-body {
+      display: grid;
+      gap: 12px;
+      animation: reveal-down .24s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    @keyframes reveal-down {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+    }
+
+    .switches {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .switch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      background: var(--soft-fill);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .switch input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .ua-picker {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ua-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--surface-border-strong);
+      border-radius: 14px;
+      background: var(--soft-fill-strong);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .ua-trigger small {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .ua-menu {
+      display: none;
+      padding: 8px;
+      border: 1px solid var(--surface-border-strong);
+      border-radius: 18px;
+      background: var(--surface-soft);
+      box-shadow: 0 18px 32px rgba(24, 34, 29, 0.12);
+    }
+
+    .ua-picker.open .ua-menu {
+      display: grid;
+      gap: 6px;
+      animation: menu-in .18s ease;
+    }
+
+    @keyframes menu-in {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+    }
+
+    .ua-option {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font: 600 14px var(--font);
+    }
+
+    .ua-option:hover,
+    .ua-option.active {
+      background: rgba(11, 102, 214, 0.08);
+    }
+
+    .ua-option.active::after {
+      content: "✓";
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .ua-custom-row {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 14px;
+      background: rgba(11, 102, 214, 0.08);
+    }
+
+    .ua-custom-row.active {
+      outline: 1px solid rgba(11, 102, 214, 0.24);
+    }
+
+    .ua-custom-button {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 14px 16px;
+      border: 1px solid rgba(20, 32, 28, 0.08);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.68);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    }
+
+    .status {
+      min-height: 22px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    
+    .status:empty {
+      display: none;
+    }
+
+    .status.success {
+      color: var(--green);
+    }
+
+    .status.error {
+      color: var(--red);
+    }
+
+    @media (max-width: 1120px) {
+      .overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        width: min(100vw - 20px, 1320px);
+        padding-top: 10px;
+      }
+
+      .topbar-inner,
+      .section-head,
+      .controls,
+      .editor-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .topbar-actions {
+        width: 100%;
+      }
+
+      .theme-switch {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .theme-switch .seg-btn {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .topbar-actions .btn,
+      .topbar-actions form {
+        flex: 1;
+      }
+
+      .topbar-actions form button {
+        width: 100%;
+      }
+
+      .overview,
+      .switches,
+      .kind-picker,
+      .security-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-group {
+        width: 100%;
+      }
+
+      .modal-shell {
+        justify-content: center;
+        padding: 72px 12px 12px;
+      }
+
+      .modal-card {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 84px);
+      }
+
+      .modal-scroll {
+        max-height: calc(100vh - 84px);
+        padding: 14px;
+      }
+
+      .route-header-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .route-header-actions .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-badge">R</div>
+          <div class="brand-copy">
+            <p>ReForward Console</p>
+            <h1>路由控制台</h1>
+          </div>
+        </div>
+
+        <div class="topbar-meta">
+          <div class="pill"><strong>默认入口</strong><code>{{DEFAULT_REDIRECT}}</code></div>
+          <div class="pill"><strong>Worker</strong><code>{{PUBLIC_ORIGIN}}</code></div>
+        </div>
+
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-secondary security-trigger" id="securityModeBtn" aria-label="设置菜单">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="btn-text">设置</span>
+          </button>
+          <button type="button" class="btn btn-primary" id="newRouteBtn">新建路由</button>
+          <form method="post" action="{{BACKEND_BASE_PATH}}/logout">
+            <input type="hidden" name="csrf" value="{{CSRF_TOKEN}}">
+            <button class="btn btn-secondary" type="submit">退出控制台</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <div class="security-popover" id="securityModal" aria-hidden="true">
+      <div class="security-editor" style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="settings-stack">
+          <div class="security-head" style="align-items: center; margin-bottom: 0;">
+            <div>
+              <h3>界面外观</h3>
+              <p class="security-summary">自定义控制台的主题配色</p>
+            </div>
+            <div class="security-head-actions">
+              <div class="seg-control theme-switch settings-theme-switch" id="themeSwitch" aria-label="主题切换" style="display: grid; grid-auto-columns: minmax(58px, 1fr); text-align: center;">
+                <span class="seg-thumb" id="themeThumb" aria-hidden="true"></span>
+                <button type="button" class="seg-btn theme-option" data-theme-mode="light">亮色</button>
+                <button type="button" class="seg-btn theme-option" data-theme-mode="dark">暗色</button>
+                <button type="button" class="seg-btn theme-option" data-theme-mode="system">系统</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <div class="settings-stack">
+          <div class="security-head" style="margin-bottom: -4px;">
+            <div>
+              <h3>修改控制台密码</h3>
+              <p class="security-summary">修改成功后会立即使所有后台会话失效，并要求重新登录。</p>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-item">
+              <label for="passwordCurrent">当前密码</label>
+              <input id="passwordCurrent" type="password" autocomplete="current-password" placeholder="请输入当前密码">
+            </div>
+            <div class="settings-group-item">
+              <label for="passwordNext">新密码</label>
+              <input id="passwordNext" type="password" autocomplete="new-password" placeholder="至少 8 位">
+            </div>
+            <div class="settings-group-item">
+              <label for="passwordConfirm">确认新密码</label>
+              <input id="passwordConfirm" type="password" autocomplete="new-password" placeholder="再次输入新密码">
+            </div>
+          </div>
+
+          <div class="security-actions" style="justify-content: flex-end; align-items: center;">
+            <div id="passwordStatus" class="status" style="margin-right: auto; margin-left: 0;"></div>
+            <button type="button" class="btn btn-primary" id="updatePasswordBtn" style="padding: 9px 18px;">更新密码</button>
+          </div>
+        </div>
+
+        <hr class="settings-divider">
+
+        <div class="settings-stack">
+          <div class="security-head" style="margin-bottom: -4px;">
+            <div>
+              <h3>应急安全模式</h3>
+              <p class="security-summary" id="securitySummary">当前关闭，路由按正常规则工作。</p>
+            </div>
+            <div class="security-head-actions">
+              <span class="security-state-pill off" id="securityStatePill">已关闭</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-item">
+              <label for="securityAction">拦截动作</label>
+              <select id="securityAction">
+                <option value="default_redirect">默认站点（反代默认地址）</option>
+                <option value="status_code">返回 HTTP 状态码</option>
+                <option value="text">返回纯文本</option>
+                <option value="terminate_session">终止会话（并阻断访问）</option>
+              </select>
+            </div>
+            <div class="settings-group-item" id="securityStatusWrap" hidden>
+              <label for="securityStatusCode">状态码</label>
+              <input id="securityStatusCode" type="number" min="100" max="599" step="1" value="503" placeholder="例如 503">
+            </div>
+            <div class="settings-group-item" id="securityTextWrap" hidden style="flex-direction: column; align-items: stretch; gap: 10px;">
+              <label for="securityText">返回文本</label>
+              <textarea id="securityText" placeholder="例如：系统维护中，请稍后再试" style="width: 100%; border: none; background: transparent; color: var(--text-secondary); resize: vertical; min-height: 48px; font-family: inherit; font-size: 14px; outline: none; padding: 0;"></textarea>
+            </div>
+          </div>
+
+          <div class="security-actions" style="justify-content: flex-end; align-items: center;">
+            <p class="security-note" style="margin-right: auto; margin-left: 0; line-height: 1.4; max-width: 50%;">启用后全局拦截所有公开路径；<br>后台路径不受影响。</p>
+            <button type="button" class="btn btn-danger" id="enableSecurityBtn" style="padding: 9px 18px;">一键启用</button>
+            <button type="button" class="btn btn-secondary" id="updateSecurityBtn" style="padding: 9px 18px;">保存</button>
+            <button type="button" class="btn btn-secondary" id="disableSecurityBtn" style="padding: 9px 18px;">关闭</button>
+          </div>
+        </div>
+        <div id="securityStatus" class="status" style="margin-top: 12px;"></div>
+      </div>
+    </div>
+
+    <section class="overview">
+      <article class="panel metric-card">
+        <p class="metric-label">全部路由</p>
+        <p class="metric-value" id="metricTotal">0</p>
+        <p class="metric-note">数据库里保存的总配置数量</p>
+      </article>
+      <article class="panel metric-card">
+        <p class="metric-label">启用中</p>
+        <p class="metric-value green" id="metricEnabled">0</p>
+        <p class="metric-note">当前仍然对外生效的路由</p>
+      </article>
+      <article class="panel metric-card">
+        <p class="metric-label">当前筛选</p>
+        <p class="metric-value accent" id="metricVisible">0</p>
+        <p class="metric-note">搜索和类型筛选后的可见数量</p>
+      </article>
+      <article class="panel metric-card">
+        <p class="metric-label">存储层</p>
+        <p class="metric-value">D1</p>
+        <p class="metric-note">Worker 代码、Secret、D1 三层独立管理</p>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <main class="panel workspace-main">
+        <div class="section-head">
+          <div>
+            <h2>路由工作区</h2>
+            <p>按路径、类型或备注快速查找。新建和编辑都在弹窗内完成，页面本身只专注浏览和筛选。</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="search">
+            <input id="searchField" type="search" placeholder="搜索路径、目标地址、备注、User-Agent">
+          </label>
+
+          <div class="seg-control filter-group" id="filterSwitch">
+            <span class="seg-thumb" id="filterThumb" aria-hidden="true"></span>
+            <button type="button" class="seg-btn filter-chip active" data-kind-filter="all">全部</button>
+            <button type="button" class="seg-btn filter-chip" data-kind-filter="proxy">Proxy</button>
+            <button type="button" class="seg-btn filter-chip" data-kind-filter="site">Site</button>
+            <button type="button" class="seg-btn filter-chip" data-kind-filter="redirect">Redirect</button>
+            <button type="button" class="seg-btn filter-chip" data-kind-filter="text">Text</button>
+          </div>
+        </div>
+
+        <div id="routes" class="route-list"></div>
+        <p id="emptyState" class="empty" hidden>当前没有匹配的路由。试试清空筛选，或者先新建一条。</p>
+        <div id="schemaHelp"></div>
+      </main>
+    </section>
+  </div>
+
+  <div class="modal-shell" id="routeModal" aria-hidden="true">
+    <div class="modal-backdrop" id="routeModalBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-scroll">
+        <div class="editor-panel">
+          <div class="editor-header">
+            <div>
+              <p class="editor-kicker">Route Editor</p>
+              <h3 id="formTitle">新建路由</h3>
+              <p>像设置面板一样逐项填写。先选类型，再补齐目标、行为和备注。</p>
+            </div>
+            <div class="route-header-actions">
+              <button type="button" class="btn btn-secondary" id="resetBtn">清空</button>
+              <button type="button" class="btn btn-secondary modal-close" id="closeModalBtn" aria-label="关闭">×</button>
+            </div>
+          </div>
+
+          <form id="routeForm" class="editor-form">
+            <input type="hidden" name="id" value="">
+            <input type="hidden" name="kind" id="kindField" value="proxy">
+
+            <div class="editor-grid">
+              <label class="editor-wide slug-field">
+                公开路径
+                <div class="field-inline">
+                  <input name="slug" placeholder="例如 demo/site 或 api-token" required>
+                  <button type="button" class="btn btn-secondary inline-action" id="generateSlugBtn">随机生成</button>
+                </div>
+                <p class="field-help field-error-text" id="slugValidationError" hidden></p>
+                <div class="inline-panel" id="slugGeneratorPanel" hidden>
+                  <div class="form-section-head">
+                    <strong>随机路径</strong>
+                    <span>仅生成大小写字母和数字</span>
+                  </div>
+                  <div class="length-row">
+                    <input type="range" id="slugLengthRange" min="1" max="64" step="1" value="16">
+                    <label class="length-pill" id="slugLengthPill">
+                      <input type="number" id="slugLengthInput" min="1" max="64" step="1" value="16">
+                      <span>位</span>
+                    </label>
+                  </div>
+                  <p class="inline-warning" id="slugLengthWarning" hidden>8 位以下过短，容易被撞路径，不建议用于公开入口。</p>
+                  <p class="field-help">点击按钮会生成 1-64 位随机字符串，并直接填入公开路径。建议至少 8 位。</p>
+                </div>
+              </label>
+
+              <div class="editor-wide field-panel">
+                <div class="form-section-head">
+                  <strong>路由类型</strong>
+                </div>
+                <div class="kind-picker">
+                  <button type="button" class="kind-card active" data-kind-option="proxy">
+                    <strong>Proxy</strong>
+                    <span>接口、订阅、文件透传。对上游发起请求并返回结果。</span>
+                  </button>
+                  <button type="button" class="kind-card" data-kind-option="site">
+                    <strong>Site</strong>
+                    <span>网页反代。会把 `/slug/...` 映射到目标站点对应路径。</span>
+                  </button>
+                  <button type="button" class="kind-card" data-kind-option="redirect">
+                    <strong>Redirect</strong>
+                    <span>直接 302 跳转到另一个地址，不经过内容代理。</span>
+                  </button>
+                  <button type="button" class="kind-card" data-kind-option="text">
+                    <strong>Text</strong>
+                    <span>直接返回纯文本，适合订阅内容、探针或说明文案。</span>
+                  </button>
+                </div>
+              </div>
+
+              <label id="targetWrap" class="editor-wide field-panel">
+                <div class="form-section-head">
+                  <strong id="targetTitle">上游地址</strong>
+                  <span>HTTP / HTTPS</span>
+                </div>
+                <span id="targetLabel">目标地址</span>
+                <input id="targetInput" name="targetUrl" placeholder="https://example.com/resource" hidden>
+                <div id="targetHttpsWrap" class="target-prefix" hidden>
+                  <span>https://</span>
+                  <input id="targetHttpsInput" type="text" placeholder="example.com/landing-page" inputmode="url" autocomplete="off">
+                </div>
+                <p class="field-help field-error-text" id="targetValidationError" hidden></p>
+                <p class="field-help" id="targetHelp">适合直接代理接口、文件或订阅地址。查询参数会继续向上游透传。</p>
+              </label>
+
+              <label id="contentWrap" class="editor-wide field-panel" hidden>
+                <div class="form-section-head">
+                  <strong>文本内容</strong>
+                  <span>直接返回</span>
+                </div>
+                <span>文本内容</span>
+                <textarea name="content" placeholder="这里填纯文本下发内容"></textarea>
+                <p class="field-help field-error-text" id="contentValidationError" hidden></p>
+                <p class="field-help" id="contentHelp">这里填写访问此路由时要直接返回的纯文本内容。</p>
+              </label>
+
+              <label class="editor-wide">
+                备注
+                <input name="notes" placeholder="简短备注，例如：官网反代 / 订阅入口 / 活动跳转">
+                <p class="field-help field-error-text" id="notesValidationError" hidden></p>
+              </label>
+            </div>
+
+            <div class="advanced-panel" id="advancedPanel">
+              <button type="button" class="advanced-toggle" id="advancedToggle">
+                <span class="advanced-toggle-copy">
+                  <strong>行为选项</strong>
+                  <span id="optionsHint">按当前类型显示相关开关</span>
+                </span>
+                <span class="advanced-toggle-icon">⌄</span>
+              </button>
+
+              <div class="advanced-body">
+                <div class="switches">
+                  <label class="switch"><input type="checkbox" name="enabled" checked> 启用</label>
+                  <label class="switch" id="stripCookiesWrap"><input type="checkbox" name="stripCookies" checked> 去
+                    Cookie</label>
+                  <label class="switch" id="enableCorsWrap"><input type="checkbox" name="enableCors"> 开 CORS</label>
+                  <label class="switch" id="blockPrivateTargetsWrap"><input type="checkbox" name="blockPrivateTargets"
+                      checked> 拦截内网</label>
+                  <label class="switch" id="rewriteWrap"><input type="checkbox" name="rewriteHtml" checked> 重写
+                    HTML/CSS</label>
+                  <label class="switch" id="useUserAgentWrap"><input type="checkbox" id="useUserAgent"> 覆盖
+                    User-Agent</label>
+                </div>
+
+                <div id="userAgentPanel" hidden>
+                  <label>
+                    UA 方案
+                    <div class="ua-picker" id="uaPicker">
+                      <button type="button" class="ua-trigger" id="uaTrigger">
+                        <span id="uaTriggerText">选择一个 UA 方案</span>
+                        <small>点击展开</small>
+                      </button>
+
+                      <div class="ua-menu" id="uaMenu">
+                        <button type="button" class="ua-option" data-ua-value="mihomo">mihomo</button>
+                        <button type="button" class="ua-option" data-ua-value="clash.meta">clash.meta</button>
+                        <button type="button" class="ua-option" data-ua-value="sing-box">sing-box</button>
+                        <button type="button" class="ua-option" data-ua-value="default">default</button>
+                        <div class="ua-custom-row" id="uaCustomRow">
+                          <button type="button" class="btn btn-secondary ua-custom-button"
+                            id="uaCustomButton">自定义输入</button>
+                          <input id="userAgentCustomInput" placeholder="Mozilla/5.0 ...">
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">保存路由</button>
+              <button type="button" class="btn btn-secondary" id="duplicateBtn">复制为新路由</button>
+            </div>
+            <div id="status" class="status"></div>
+          </form>
+
+          <div class="editor-footnote">
+            <strong>当前控制台规则</strong><br>
+            后台路径、默认入口策略、密码哈希都保存在 Cloudflare D1。<br>
+            后台会话签名会随 Worker 新版本自动轮换。<br>
+            路由本体也存放在 Cloudflare D1。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="security-fx" id="securityFx" aria-hidden="true">
+    <div class="security-fx-core">
+      <svg class="security-fx-shield" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Shield Outline (continuous path from top-right to bottom to top-left) -->
+        <path class="shield-outline" d="M 68 14 
+                 Q 90 20 106 32 
+                 L 106 64 
+                 C 106 102 84 128 60 136 
+                 C 36 128 14 102 14 64 
+                 L 14 32 
+                 Q 30 20 52 14" stroke="#88D4FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        <!-- Exclamation Dot (Top) -->
+        <circle class="shield-dot" cx="60" cy="46" r="4.5" fill="#88D4FF" />
+        <!-- Exclamation Line (Bottom) -->
+        <path class="shield-line" d="M 60 62 L 60 92" stroke="#88D4FF" stroke-width="6" stroke-linecap="round" />
+      </svg>
+    </div>
+    <div class="security-fx-text">坚盾守护模式</div>
+  </div>
+
+  <script>
+    const adminBase = "{{ADMIN_BASE_JSON}}";
+    const csrfToken = "{{CSRF_TOKEN_JSON}}";
+    const apiBase = adminBase + "/api";
+    const state = {
+      routes: [],
+      editingId: null,
+      schemaReady: true,
+      search: "",
+      kindFilter: "all",
+      userAgentMode: "mihomo",
+      routeValidation: {
+        submitted: false,
+        touched: {
+          slug: false,
+          target: false,
+          content: false,
+          notes: false,
+        },
+      },
+      securityMode: {
+        enabled: false,
+        action: "default_redirect",
+        statusCode: 503,
+        text: "Access temporarily disabled by security mode.",
+      },
+    };
+
+    const form = document.getElementById("routeForm");
+    const routesEl = document.getElementById("routes");
+    const emptyEl = document.getElementById("emptyState");
+    const statusEl = document.getElementById("status");
+    const formTitleEl = document.getElementById("formTitle");
+    const submitBtn = document.getElementById("submitBtn");
+    const metricTotal = document.getElementById("metricTotal");
+    const metricEnabled = document.getElementById("metricEnabled");
+    const metricVisible = document.getElementById("metricVisible");
+    const kindField = document.getElementById("kindField");
+    const kindButtons = Array.from(document.querySelectorAll("[data-kind-option]"));
+    const targetWrap = document.getElementById("targetWrap");
+    const targetTitle = document.getElementById("targetTitle");
+    const targetLabel = document.getElementById("targetLabel");
+    const targetInput = document.getElementById("targetInput");
+    const targetHttpsWrap = document.getElementById("targetHttpsWrap");
+    const targetHttpsInput = document.getElementById("targetHttpsInput");
+    const targetHelp = document.getElementById("targetHelp");
+    const targetValidationError = document.getElementById("targetValidationError");
+    const contentWrap = document.getElementById("contentWrap");
+    const contentInput = form.elements.content;
+    const contentHelp = document.getElementById("contentHelp");
+    const contentValidationError = document.getElementById("contentValidationError");
+    const slugInput = form.elements.slug;
+    const generateSlugBtn = document.getElementById("generateSlugBtn");
+    const slugGeneratorPanel = document.getElementById("slugGeneratorPanel");
+    const slugLengthRange = document.getElementById("slugLengthRange");
+    const slugLengthInput = document.getElementById("slugLengthInput");
+    const slugLengthPill = document.getElementById("slugLengthPill");
+    const slugLengthWarning = document.getElementById("slugLengthWarning");
+    const slugValidationError = document.getElementById("slugValidationError");
+    const notesInput = form.elements.notes;
+    const notesValidationError = document.getElementById("notesValidationError");
+    const rewriteWrap = document.getElementById("rewriteWrap");
+    const stripCookiesWrap = document.getElementById("stripCookiesWrap");
+    const enableCorsWrap = document.getElementById("enableCorsWrap");
+    const blockPrivateTargetsWrap = document.getElementById("blockPrivateTargetsWrap");
+    const useUserAgentWrap = document.getElementById("useUserAgentWrap");
+    const useUserAgent = document.getElementById("useUserAgent");
+    const advancedPanel = document.getElementById("advancedPanel");
+    const advancedToggle = document.getElementById("advancedToggle");
+    const userAgentPanel = document.getElementById("userAgentPanel");
+    const uaPicker = document.getElementById("uaPicker");
+    const uaTrigger = document.getElementById("uaTrigger");
+    const uaTriggerText = document.getElementById("uaTriggerText");
+    const uaOptions = Array.from(document.querySelectorAll("[data-ua-value]"));
+    const uaCustomRow = document.getElementById("uaCustomRow");
+    const uaCustomButton = document.getElementById("uaCustomButton");
+    const userAgentCustomInput = document.getElementById("userAgentCustomInput");
+    const optionsHint = document.getElementById("optionsHint");
+    const resetBtn = document.getElementById("resetBtn");
+    const duplicateBtn = document.getElementById("duplicateBtn");
+    const newRouteBtn = document.getElementById("newRouteBtn");
+    const securityModeBtn = document.getElementById("securityModeBtn");
+    const searchField = document.getElementById("searchField");
+    const securityStatusEl = document.getElementById("securityStatus");
+    const securitySummary = document.getElementById("securitySummary");
+    const securityStatePill = document.getElementById("securityStatePill");
+    const securityAction = document.getElementById("securityAction");
+    const securityStatusWrap = document.getElementById("securityStatusWrap");
+    const securityStatusCode = document.getElementById("securityStatusCode");
+    const securityTextWrap = document.getElementById("securityTextWrap");
+    const securityText = document.getElementById("securityText");
+    const enableSecurityBtn = document.getElementById("enableSecurityBtn");
+    const updateSecurityBtn = document.getElementById("updateSecurityBtn");
+    const disableSecurityBtn = document.getElementById("disableSecurityBtn");
+    const passwordCurrent = document.getElementById("passwordCurrent");
+    const passwordNext = document.getElementById("passwordNext");
+    const passwordConfirm = document.getElementById("passwordConfirm");
+    const updatePasswordBtn = document.getElementById("updatePasswordBtn");
+    const passwordStatusEl = document.getElementById("passwordStatus");
+    const filterTrack = document.getElementById("filterSwitch");
+    const filterButtons = Array.from(filterTrack?.querySelectorAll("[data-kind-filter]") || []);
+    const filterThumb = document.getElementById("filterThumb");
+    const schemaHelpEl = document.getElementById("schemaHelp");
+    const routeModal = document.getElementById("routeModal");
+    const routeModalBackdrop = document.getElementById("routeModalBackdrop");
+    const routeModalScroll = routeModal.querySelector(".modal-scroll");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const securityModal = document.getElementById("securityModal");
+    // removed securityModalBackdrop
+    const securityFx = document.getElementById("securityFx");
+    const themeTrack = document.getElementById("themeSwitch");
+    const themeButtons = Array.from(themeTrack?.querySelectorAll("[data-theme-mode]") || []);
+    const themeThumb = document.getElementById("themeThumb");
+    const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeStorageKey = "reforward-theme-mode";
+    let slugAnimationFrame = 0;
+    let slugAnimationToken = 0;
+    let securityFxTimer = 0;
+    const SECURITY_FX_DURATION_MS = 2200;
+
+    function readThemeMode() {
+      try {
+        return localStorage.getItem(themeStorageKey) || "system";
+      } catch {
+        return "system";
+      }
+    }
+
+    function resolveTheme(mode) {
+      return mode === "system" ? (themeMedia.matches ? "dark" : "light") : mode;
+    }
+
+    function applyTheme(mode, persist = false) {
+      if (persist) {
+        try {
+          localStorage.setItem(themeStorageKey, mode);
+        } catch { }
+      }
+      document.documentElement.dataset.themeMode = mode;
+      document.documentElement.dataset.theme = resolveTheme(mode);
+      for (const button of themeButtons) {
+        button.classList.toggle("active", button.dataset.themeMode === mode);
+      }
+      updateThemeThumb();
+    }
+
+    function positionSegThumb(thumb, activeButton, track, attempt = 0) {
+      if (!thumb || !activeButton || !track) return;
+      const width = activeButton.offsetWidth;
+      const height = activeButton.offsetHeight;
+      if ((!width || !height) && attempt < 60) {
+        requestAnimationFrame(() => positionSegThumb(thumb, activeButton, track, attempt + 1));
+        return;
+      }
+      thumb.style.width = width + "px";
+      thumb.style.height = height + "px";
+      thumb.style.transform = `translate3d(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px, 0)`;
+      if (!thumb.classList.contains("ready")) {
+        requestAnimationFrame(() => requestAnimationFrame(() => thumb.classList.add("ready")));
+      }
+    }
+
+    function updateThemeThumb() {
+      const active = themeButtons.find(b => b.classList.contains("active"));
+      positionSegThumb(themeThumb, active, themeTrack);
+    }
+
+    function updateFilterThumb() {
+      const active = filterButtons.find(b => b.classList.contains("active"));
+      positionSegThumb(filterThumb, active, filterTrack);
+    }
+
+    function normalizeSecurityMode(mode) {
+      const source = mode || {};
+      const actionCandidates = ["default_redirect", "status_code", "text", "terminate_session"];
+      const action = actionCandidates.includes(source.action) ? source.action : "default_redirect";
+      const statusCodeNumber = Number(source.statusCode);
+      const statusCode = Number.isInteger(statusCodeNumber) && statusCodeNumber >= 100 && statusCodeNumber <= 599
+        ? statusCodeNumber
+        : 503;
+      const text = String(source.text || "").trim() || "Access temporarily disabled by security mode.";
+
+      return {
+        enabled: Boolean(source.enabled),
+        action,
+        statusCode,
+        text,
+      };
+    }
+
+    function setSecurityStatus(message, type = "") {
+      securityStatusEl.textContent = message || "";
+      securityStatusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function setPasswordStatus(message, type = "") {
+      passwordStatusEl.textContent = message || "";
+      passwordStatusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function resetPasswordForm() {
+      passwordCurrent.value = "";
+      passwordNext.value = "";
+      passwordConfirm.value = "";
+    }
+
+    function securityActionText(action, mode) {
+      if (action === "default_redirect") return "默认站点：所有公开路径反代默认地址，前台 URL 保持不变。";
+      if (action === "status_code") return `状态码拦截：所有公开路径返回 HTTP ${mode.statusCode}。`;
+      if (action === "text") return "文本拦截：所有公开路径直接返回纯文本内容。";
+      if (action === "terminate_session") return "终止会话：启用时会使所有已登录后台会话失效，并对公开路径返回 401。";
+      return "未知动作";
+    }
+
+    function syncSecurityActionUi() {
+      const action = securityAction.value || "default_redirect";
+      securityStatusWrap.hidden = action !== "status_code";
+      securityTextWrap.hidden = action !== "text";
+    }
+
+    function collectSecurityPayload(nextEnabled = null) {
+      const mode = normalizeSecurityMode({
+        enabled: nextEnabled == null ? state.securityMode.enabled : nextEnabled,
+        action: securityAction.value,
+        statusCode: securityStatusCode.value,
+        text: securityText.value,
+      });
+
+      if (mode.action === "status_code") {
+        const numeric = Number(securityStatusCode.value);
+        if (!Number.isInteger(numeric) || numeric < 100 || numeric > 599) {
+          throw new Error("状态码必须是 100-599 的整数");
+        }
+        mode.statusCode = numeric;
+      }
+
+      if (mode.action === "text") {
+        if (!String(securityText.value || "").trim()) {
+          throw new Error("纯文本模式下，返回文本不能为空");
+        }
+      }
+
+      return mode;
+    }
+
+    function renderSecurityMode() {
+      const mode = normalizeSecurityMode(state.securityMode);
+      state.securityMode = mode;
+
+      securityAction.value = mode.action;
+      securityStatusCode.value = String(mode.statusCode);
+      securityText.value = mode.text;
+      syncSecurityActionUi();
+
+      securityStatePill.textContent = mode.enabled ? "已开启" : "已关闭";
+      securityStatePill.className = "security-state-pill " + (mode.enabled ? "on" : "off");
+      securitySummary.textContent = mode.enabled
+        ? "安全模式已开启。"
+        : "当前关闭，路由按正常规则工作。";
+
+      const actionDescription = securityActionText(mode.action, mode);
+      if (mode.enabled) {
+        securitySummary.textContent += " " + actionDescription;
+        enableSecurityBtn.textContent = "更新并保持开启";
+      } else {
+        enableSecurityBtn.textContent = "一键启用安全模式";
+      }
+
+      securityModeBtn.classList.toggle("on", mode.enabled);
+      const btnTextEl = securityModeBtn.querySelector('.btn-text');
+      if (btnTextEl) {
+        btnTextEl.textContent = mode.enabled ? "安全模式·开启" : "设置";
+      }
+      disableSecurityBtn.disabled = !mode.enabled;
+    }
+
+    async function saveSecurityMode(nextEnabled = null) {
+      const wasEnabled = Boolean(state.securityMode?.enabled);
+      let payload;
+      try {
+        payload = collectSecurityPayload(nextEnabled);
+      } catch (error) {
+        setSecurityStatus(error.message || "安全模式参数不合法", "error");
+        return;
+      }
+
+      const willTerminateSessions =
+        payload.enabled &&
+        payload.action === "terminate_session" &&
+        (!state.securityMode.enabled || state.securityMode.action !== "terminate_session");
+
+      if (willTerminateSessions) {
+        const confirmed = confirm("将立即使所有已登录后台会话失效，确认继续？");
+        if (!confirmed) return;
+      }
+
+      setSecurityStatus("正在保存安全模式...");
+      enableSecurityBtn.disabled = true;
+      updateSecurityBtn.disabled = true;
+      disableSecurityBtn.disabled = true;
+      securityAction.disabled = true;
+      securityStatusCode.disabled = true;
+      securityText.disabled = true;
+
+      try {
+        const response = await fetch(apiBase + "/security-mode", {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json", "x-rf-csrf": csrfToken },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "保存安全模式失败");
+        }
+
+        state.securityMode = normalizeSecurityMode(data.securityMode);
+        renderSecurityMode();
+        setSecurityStatus("安全模式已更新", "success");
+        if (!wasEnabled && state.securityMode.enabled) {
+          playSecurityFx();
+        }
+
+        if (data.sessionTerminated) {
+          setSecurityStatus("安全模式已开启，后台会话已终止，正在跳转登录页...", "success");
+          setTimeout(() => {
+            window.location.href = adminBase;
+          }, SECURITY_FX_DURATION_MS + 120);
+        }
+      } catch (error) {
+        setSecurityStatus(error.message || "保存安全模式失败", "error");
+      } finally {
+        enableSecurityBtn.disabled = false;
+        updateSecurityBtn.disabled = false;
+        securityAction.disabled = false;
+        securityStatusCode.disabled = false;
+        securityText.disabled = false;
+        disableSecurityBtn.disabled = !state.securityMode.enabled;
+      }
+    }
+
+    async function updateConsolePassword() {
+      const currentPassword = String(passwordCurrent.value || "");
+      const newPassword = String(passwordNext.value || "");
+      const confirmNewPassword = String(passwordConfirm.value || "");
+
+      if (!currentPassword) {
+        setPasswordStatus("当前密码不能为空", "error");
+        passwordCurrent.focus();
+        return;
+      }
+      if (newPassword.length < 8) {
+        setPasswordStatus("新密码至少需要 8 位", "error");
+        passwordNext.focus();
+        return;
+      }
+      if (newPassword !== confirmNewPassword) {
+        setPasswordStatus("两次输入的新密码不一致", "error");
+        passwordConfirm.focus();
+        return;
+      }
+      if (currentPassword === newPassword) {
+        setPasswordStatus("新密码不能与当前密码相同", "error");
+        passwordNext.focus();
+        return;
+      }
+
+      updatePasswordBtn.disabled = true;
+      passwordCurrent.disabled = true;
+      passwordNext.disabled = true;
+      passwordConfirm.disabled = true;
+      setPasswordStatus("正在更新密码...");
+
+      try {
+        const response = await fetch(apiBase + "/password", {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json", "x-rf-csrf": csrfToken },
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+            confirmNewPassword,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "更新密码失败");
+        }
+
+        resetPasswordForm();
+        setPasswordStatus("密码已更新，正在跳转登录页...", "success");
+        setTimeout(() => {
+          window.location.href = adminBase;
+        }, 900);
+      } catch (error) {
+        setPasswordStatus(error.message || "更新密码失败", "error");
+      } finally {
+        updatePasswordBtn.disabled = false;
+        passwordCurrent.disabled = false;
+        passwordNext.disabled = false;
+        passwordConfirm.disabled = false;
+      }
+    }
+
+    function clampSlugLength(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return 16;
+      return Math.max(1, Math.min(64, Math.round(numeric)));
+    }
+
+    function syncSlugLengthUi(value) {
+      const length = clampSlugLength(value);
+      slugLengthRange.value = String(length);
+      slugLengthRange.style.setProperty("--range-progress", ((length - 1) / 63) * 100 + "%");
+      slugLengthInput.value = String(length);
+      slugLengthPill.classList.toggle("warning", length < 8);
+      slugLengthWarning.hidden = length >= 8;
+      return length;
+    }
+
+    function generateRandomSlug(length) {
+      const size = clampSlugLength(length);
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      const bytes = new Uint8Array(size);
+      crypto.getRandomValues(bytes);
+      let output = "";
+      for (const byte of bytes) {
+        output += alphabet[byte % alphabet.length];
+      }
+      return output;
+    }
+
+    function setSlugValue(value, emitEvent = false) {
+      slugInput.value = value;
+      if (emitEvent) {
+        slugInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }
+
+    function stopSlugAnimation() {
+      slugAnimationToken += 1;
+      if (slugAnimationFrame) {
+        cancelAnimationFrame(slugAnimationFrame);
+        slugAnimationFrame = 0;
+      }
+      slugInput.classList.remove("is-randomizing");
+    }
+
+    function animateSlugValue(targetValue) {
+      stopSlugAnimation();
+      const animationToken = slugAnimationToken;
+      const startAt = performance.now();
+      const duration = 220;
+      slugInput.classList.add("is-randomizing");
+
+      function frame(now) {
+        if (animationToken !== slugAnimationToken) return;
+        const progress = Math.min(1, (now - startAt) / duration);
+        const fixedLength = Math.floor(targetValue.length * progress);
+        const preview =
+          targetValue.slice(0, fixedLength) +
+          generateRandomSlug(Math.max(0, targetValue.length - fixedLength));
+        setSlugValue(preview);
+
+        if (progress < 1) {
+          slugAnimationFrame = requestAnimationFrame(frame);
+          return;
+        }
+
+        slugAnimationFrame = 0;
+        slugInput.classList.remove("is-randomizing");
+        setSlugValue(targetValue, true);
+      }
+
+      slugAnimationFrame = requestAnimationFrame(frame);
+    }
+
+    function refreshRandomSlug(length, animate = true) {
+      const finalLength = syncSlugLengthUi(length);
+      const nextValue = generateRandomSlug(finalLength);
+      if (animate) {
+        animateSlugValue(nextValue);
+      } else {
+        stopSlugAnimation();
+        setSlugValue(nextValue, true);
+      }
+      return nextValue;
+    }
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message || "";
+      statusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function setFieldValidationState({ input = null, container = null, errorEl = null, message = "", reveal = true } = {}) {
+      const hasError = reveal && Boolean(message);
+      if (input) {
+        input.classList.toggle("input-invalid", hasError);
+      }
+      if (container) {
+        container.classList.toggle("input-invalid", hasError);
+      }
+      if (errorEl) {
+        errorEl.hidden = !hasError;
+        errorEl.textContent = hasError ? message : "";
+      }
+    }
+
+    function setSlugValidationState(message = "", reveal = true) {
+      setFieldValidationState({
+        input: slugInput,
+        errorEl: slugValidationError,
+        message,
+        reveal,
+      });
+    }
+
+    function setTargetValidationState(message = "", reveal = true) {
+      setFieldValidationState({
+        input: targetInput.hidden ? null : targetInput,
+        container: targetHttpsWrap.hidden ? null : targetHttpsWrap,
+        errorEl: targetValidationError,
+        message,
+        reveal,
+      });
+    }
+
+    function setContentValidationState(message = "", reveal = true) {
+      setFieldValidationState({
+        input: contentInput,
+        errorEl: contentValidationError,
+        message,
+        reveal,
+      });
+    }
+
+    function setNotesValidationState(message = "", reveal = true) {
+      setFieldValidationState({
+        input: notesInput,
+        errorEl: notesValidationError,
+        message,
+        reveal,
+      });
+    }
+
+    function shouldRevealFieldValidation(field, force = false) {
+      return force || state.routeValidation.submitted || Boolean(state.routeValidation.touched[field]);
+    }
+
+    function markFieldTouched(field) {
+      if (state.routeValidation.touched[field]) return;
+      state.routeValidation.touched[field] = true;
+    }
+
+    function resetRouteValidationState() {
+      state.routeValidation.submitted = false;
+      state.routeValidation.touched.slug = false;
+      state.routeValidation.touched.target = false;
+      state.routeValidation.touched.content = false;
+      state.routeValidation.touched.notes = false;
+    }
+
+    function validateSlugInput({ force = false } = {}) {
+      const value = String(slugInput.value || "").trim();
+      let message = "";
+
+      if (!value) {
+        message = "公开路径不能为空";
+      } else if (value.length > 256) {
+        message = "公开路径过长，最多 256 个字符";
+      } else if (value.includes("?") || value.includes("#")) {
+        message = "公开路径不能包含 ? 或 #";
+      } else if (!/^[A-Za-z0-9._~/-]+$/.test(value)) {
+        message = "公开路径仅支持字母、数字、/、.、_、~ 和 -";
+      }
+
+      setSlugValidationState(message, shouldRevealFieldValidation("slug", force));
+      return !message;
+    }
+
+    function validateTargetInput({ force = false } = {}) {
+      const kind = String(form.elements.kind.value || "proxy");
+      if (kind === "text") {
+        setTargetValidationState("");
+        return true;
+      }
+
+      const raw = String(targetHttpsInput.value || "").trim().replace(/^https?:\/\//i, "");
+      let message = "";
+
+      if (!raw) {
+        message = "目标地址不能为空";
+      } else if (`https://${raw}`.length > 2048) {
+        message = "目标地址过长，最多 2048 个字符";
+      } else {
+        try {
+          const parsed = new URL(`https://${raw}`);
+          if (!parsed.hostname) {
+            message = "目标地址格式不正确";
+          } else if (parsed.username || parsed.password) {
+            message = "目标地址不能包含用户名或密码";
+          }
+        } catch {
+          message = "目标地址格式不正确";
+        }
+      }
+
+      setTargetValidationState(message, shouldRevealFieldValidation("target", force));
+      return !message;
+    }
+
+    function validateContentInput({ force = false } = {}) {
+      const kind = String(form.elements.kind.value || "proxy");
+      if (kind !== "text") {
+        setContentValidationState("");
+        return true;
+      }
+
+      const value = String(contentInput.value || "");
+      let message = "";
+
+      if (!value.trim()) {
+        message = "文本内容不能为空";
+      } else if (value.length > 20000) {
+        message = "文本内容过长，最多 20000 个字符";
+      }
+
+      setContentValidationState(message, shouldRevealFieldValidation("content", force));
+      return !message;
+    }
+
+    function validateNotesInput({ force = false } = {}) {
+      const value = String(notesInput.value || "").trim();
+      let message = "";
+
+      if (value.length > 200) {
+        message = "备注过长，最多 200 个字符";
+      }
+
+      setNotesValidationState(message, shouldRevealFieldValidation("notes", force));
+      return !message;
+    }
+
+    function validateRouteForm({ force = false } = {}) {
+      if (!validateSlugInput({ force })) {
+        return slugInput;
+      }
+
+      if (!validateTargetInput({ force })) {
+        return targetHttpsWrap.hidden ? targetInput : targetHttpsInput;
+      }
+
+      if (!validateContentInput({ force })) {
+        return contentInput;
+      }
+
+      if (!validateNotesInput({ force })) {
+        return notesInput;
+      }
+
+      return null;
+    }
+
+    function refreshRouteValidation(options = {}) {
+      validateSlugInput(options);
+      validateTargetInput(options);
+      validateContentInput(options);
+      validateNotesInput(options);
+    }
+
+    function setEditorDisabled(disabled) {
+      for (const field of Array.from(form.elements)) {
+        if ("disabled" in field && field.name !== "id") {
+          field.disabled = disabled;
+        }
+      }
+      duplicateBtn.disabled = disabled;
+      newRouteBtn.disabled = disabled;
+      closeModalBtn.disabled = disabled;
+    }
+
+    function readForm() {
+      const fd = new FormData(form);
+      const kind = String(fd.get("kind") || "proxy");
+      return {
+        slug: String(fd.get("slug") || ""),
+        kind,
+        targetUrl: readTargetInputValue(kind),
+        content: String(fd.get("content") || ""),
+        userAgent: readUserAgent(),
+        notes: String(fd.get("notes") || "").trim(),
+        enabled: form.elements.enabled.checked,
+        stripCookies: form.elements.stripCookies.checked,
+        enableCors: form.elements.enableCors.checked,
+        blockPrivateTargets: form.elements.blockPrivateTargets.checked,
+        rewriteHtml: form.elements.rewriteHtml.checked,
+      };
+    }
+
+    function fillForm(route, duplicate = false) {
+      resetRouteValidationState();
+      form.elements.id.value = duplicate ? "" : String(route.id || "");
+      form.elements.slug.value = duplicate ? route.slug + "-copy" : route.slug || "";
+      form.elements.kind.value = route.kind || "proxy";
+      setTargetInputValue(route.kind || "proxy", route.targetUrl || "");
+      form.elements.content.value = route.content || "";
+      form.elements.notes.value = route.notes || "";
+      form.elements.enabled.checked = Boolean(route.enabled);
+      form.elements.stripCookies.checked = Boolean(route.stripCookies);
+      form.elements.enableCors.checked = Boolean(route.enableCors);
+      form.elements.blockPrivateTargets.checked = Boolean(route.blockPrivateTargets);
+      form.elements.rewriteHtml.checked = Boolean(route.rewriteHtml);
+      applyUserAgentValue(route.userAgent || "");
+      state.editingId = duplicate ? null : route.id;
+      formTitleEl.textContent = duplicate ? "复制路由" : "编辑路由";
+      submitBtn.textContent = duplicate ? "创建副本" : "更新路由";
+      syncKindUi();
+      setSlugValidationState("");
+      setTargetValidationState("");
+      setContentValidationState("");
+      setNotesValidationState("");
+      openRouteModal();
+    }
+
+    function resetForm() {
+      resetRouteValidationState();
+      form.reset();
+      form.elements.id.value = "";
+      form.elements.kind.value = "proxy";
+      setTargetInputValue("proxy", "");
+      stopSlugAnimation();
+      syncSlugLengthUi(16);
+      slugGeneratorPanel.hidden = true;
+      form.elements.enabled.checked = true;
+      form.elements.stripCookies.checked = true;
+      form.elements.blockPrivateTargets.checked = true;
+      form.elements.rewriteHtml.checked = true;
+      useUserAgent.checked = false;
+      state.userAgentMode = "mihomo";
+      userAgentCustomInput.value = "";
+      state.editingId = null;
+      formTitleEl.textContent = "新建路由";
+      submitBtn.textContent = "保存路由";
+      syncKindUi();
+      syncUserAgentUi();
+      setSlugValidationState("");
+      setTargetValidationState("");
+      setContentValidationState("");
+      setNotesValidationState("");
+      setStatus("");
+    }
+
+    function getKindConfig(kind) {
+      const configs = {
+        proxy: {
+          title: "Proxy 路由",
+          description: "适合接口、订阅、文件透传。访问公开路径时，Worker 会把请求转发给你的上游地址。",
+          targetTitle: "上游地址",
+          targetLabel: "目标地址",
+          targetPlaceholder: "https://example.com/api/subscription",
+          targetHelp: "会保留原始请求方法和查询参数，适合接口、下载文件或订阅配置。",
+          contentHelp: "这里只在 Text 模式下使用。",
+          optionsHint: "Proxy 支持 UA、CORS、去 Cookie 和内网目标限制。",
+        },
+        site: {
+          title: "Site 路由",
+          description: "适合站点反代。访问 `/你的路径/foo` 时，会自动映射到目标站点对应路径，适合文档站、博客和前端页面的整站代理。",
+          targetTitle: "站点根地址",
+          targetLabel: "目标站点",
+          targetPlaceholder: "https://example.com/docs",
+          targetHelp: "填站点根路径即可。子路径会自动拼接到这个地址后面，可选开启 HTML/CSS 重写。",
+          contentHelp: "这里只在 Text 模式下使用。",
+          optionsHint: "Site 额外支持 HTML/CSS 重写，适合完整网页反代。",
+        },
+        redirect: {
+          title: "Redirect 路由",
+          description: "适合把某个公开路径重定向到外部链接。访问后直接返回 302，不经过内容代理，适合短链、活动入口或单页跳转。",
+          targetTitle: "跳转地址",
+          targetLabel: "目标地址",
+          targetPlaceholder: "https://example.com/landing-page",
+          targetHelp: "用户访问此路径时会立即 302 到这里。适合入口跳转、落地页或短链。",
+          contentHelp: "这里只在 Text 模式下使用。",
+          optionsHint: "这个类型只有启用状态，不显示其它代理开关。",
+        },
+        text: {
+          title: "Text 路由",
+          description: "适合下发纯文本内容，比如订阅模板、健康检查说明、配置片段或公告说明。访问时直接返回文本，不请求任何外部目标。",
+          targetTitle: "目标地址",
+          targetLabel: "目标地址",
+          targetPlaceholder: "https://example.com/resource",
+          targetHelp: "这里只在非 Text 模式下使用。",
+          contentHelp: "支持多行纯文本，访问此路径时会原样返回，不代理外部请求。",
+          optionsHint: "这个类型只有启用状态，不显示其它代理开关。",
+        },
+      };
+
+      return configs[kind] || configs.proxy;
+    }
+
+    function syncKindUi() {
+      const kind = form.elements.kind.value;
+      const config = getKindConfig(kind);
+      const isText = kind === "text";
+      const isSite = kind === "site";
+      const usesHttpsTarget = kind !== "text";
+      const isProxyLike = kind === "proxy" || kind === "site";
+
+      for (const button of kindButtons) {
+        button.classList.toggle("active", button.dataset.kindOption === kind);
+      }
+
+      targetTitle.textContent = config.targetTitle;
+      targetLabel.textContent = config.targetLabel;
+      targetInput.placeholder = config.targetPlaceholder;
+      targetHelp.textContent = config.targetHelp;
+      contentHelp.textContent = config.contentHelp;
+      optionsHint.textContent = config.optionsHint;
+      syncTargetInputMode(usesHttpsTarget, config.targetPlaceholder);
+
+      targetWrap.hidden = isText;
+      contentWrap.hidden = !isText;
+      advancedPanel.hidden = !isProxyLike;
+      stripCookiesWrap.hidden = !isProxyLike;
+      enableCorsWrap.hidden = !isProxyLike;
+      blockPrivateTargetsWrap.hidden = !isProxyLike;
+      rewriteWrap.hidden = !isSite;
+      useUserAgentWrap.hidden = !isProxyLike;
+
+      if (!isProxyLike) {
+        advancedPanel.classList.remove("open");
+      }
+
+      if (!isProxyLike) {
+        useUserAgent.checked = false;
+      }
+      if (!isSite) {
+        form.elements.rewriteHtml.checked = false;
+      }
+
+      syncUserAgentUi();
+      refreshRouteValidation();
+    }
+
+    function readTargetInputValue(kind) {
+      if (kind === "text") {
+        return String(targetInput.value || "").trim();
+      }
+      const raw = String(targetHttpsInput.value || "").trim().replace(/^https?:\/\//i, "");
+      return raw ? `https://${raw}` : "";
+    }
+
+    function setTargetInputValue(kind, value) {
+      const raw = String(value || "").trim();
+      if (kind !== "text") {
+        targetHttpsInput.value = raw.replace(/^https?:\/\//i, "");
+        targetInput.value = raw;
+        return;
+      }
+      targetInput.value = raw;
+      targetHttpsInput.value = raw.replace(/^https?:\/\//i, "");
+    }
+
+    function syncTargetInputMode(usesHttpsTarget, placeholder) {
+      if (usesHttpsTarget) {
+        targetInput.hidden = true;
+        targetHttpsWrap.hidden = false;
+        targetHttpsInput.placeholder = String(placeholder || "").replace(/^https?:\/\//i, "");
+        targetHttpsInput.value = String(targetInput.value || "").trim().replace(/^https?:\/\//i, "");
+        return;
+      }
+
+      const redirectRaw = String(targetHttpsInput.value || "").trim().replace(/^https?:\/\//i, "");
+      if (targetInput.hidden && redirectRaw) {
+        targetInput.value = `https://${redirectRaw}`;
+      }
+      targetInput.hidden = false;
+      targetHttpsWrap.hidden = true;
+    }
+
+    function syncUserAgentUi() {
+      const enabled = useUserAgent.checked && !useUserAgentWrap.hidden;
+      userAgentPanel.hidden = !enabled;
+      uaCustomRow.classList.toggle("active", state.userAgentMode === "custom");
+
+      for (const option of uaOptions) {
+        option.classList.toggle("active", option.dataset.uaValue === state.userAgentMode);
+      }
+
+      const labels = {
+        mihomo: "mihomo",
+        "clash.meta": "clash.meta",
+        "sing-box": "sing-box",
+        default: "default",
+        custom: userAgentCustomInput.value.trim() || "自定义输入",
+      };
+      uaTriggerText.textContent = labels[state.userAgentMode] || "选择一个 UA 方案";
+
+      userAgentCustomInput.disabled = !enabled || state.userAgentMode !== "custom";
+      if (!enabled) {
+        uaPicker.classList.remove("open");
+      }
+    }
+
+    function readUserAgent() {
+      if (!useUserAgent.checked || useUserAgentWrap.hidden) {
+        return "";
+      }
+
+      return state.userAgentMode === "custom"
+        ? String(userAgentCustomInput.value || "").trim()
+        : String(state.userAgentMode || "").trim();
+    }
+
+    function applyUserAgentValue(value) {
+      const normalized = String(value || "").trim();
+      if (!normalized) {
+        useUserAgent.checked = false;
+        state.userAgentMode = "mihomo";
+        userAgentCustomInput.value = "";
+        syncUserAgentUi();
+        return;
+      }
+
+      useUserAgent.checked = true;
+      if (["mihomo", "clash.meta", "sing-box", "default"].includes(normalized)) {
+        state.userAgentMode = normalized;
+        userAgentCustomInput.value = "";
+      } else {
+        state.userAgentMode = "custom";
+        userAgentCustomInput.value = normalized;
+      }
+      syncUserAgentUi();
+    }
+
+    function openRouteModal() {
+      if (routeModalScroll) {
+        routeModalScroll.scrollTop = 0;
+      }
+      routeModal.classList.add("open");
+      routeModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeRouteModal() {
+      routeModal.classList.remove("open");
+      routeModal.setAttribute("aria-hidden", "true");
+    }
+
+    function openSecurityModal() {
+      setSecurityStatus("");
+      setPasswordStatus("");
+
+      const shellRect = document.querySelector(".shell").getBoundingClientRect();
+      const btnRect = securityModeBtn.getBoundingClientRect();
+      const topPos = btnRect.bottom - shellRect.top + 14;
+      const rightPos = shellRect.right - btnRect.right;
+
+      securityModal.style.top = `${topPos}px`;
+      securityModal.style.right = `${rightPos}px`;
+
+      securityModal.classList.add("open");
+      securityModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSecurityModal() {
+      securityModal.classList.remove("open");
+      securityModal.setAttribute("aria-hidden", "true");
+    }
+
+    document.addEventListener("click", (e) => {
+      if (securityModal.classList.contains("open") && !securityModal.contains(e.target) && !securityModeBtn.contains(e.target)) {
+        closeSecurityModal();
+      }
+    });
+
+    function playSecurityFx() {
+      if (!securityFx) return;
+      clearTimeout(securityFxTimer);
+      securityFx.classList.remove("play");
+      void securityFx.offsetWidth;
+      securityFx.classList.add("play");
+      securityFxTimer = setTimeout(() => {
+        securityFx.classList.remove("play");
+      }, SECURITY_FX_DURATION_MS + 80);
+    }
+
+    function getVisibleRoutes() {
+      const keyword = state.search.trim().toLowerCase();
+
+      return state.routes.filter((route) => {
+        if (state.kindFilter !== "all" && route.kind !== state.kindFilter) {
+          return false;
+        }
+
+        if (!keyword) return true;
+
+        const haystack = [
+          route.slug,
+          route.kind,
+          route.targetUrl,
+          route.content,
+          route.userAgent,
+          route.notes,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.includes(keyword);
+      });
+    }
+
+    function renderFilterState() {
+      for (const button of filterButtons) {
+        button.classList.toggle("active", button.dataset.kindFilter === state.kindFilter);
+      }
+      updateFilterThumb();
+    }
+
+    function renderRoutes() {
+      const visibleRoutes = getVisibleRoutes();
+
+      metricTotal.textContent = String(state.routes.length);
+      metricEnabled.textContent = String(state.routes.filter((route) => route.enabled).length);
+      metricVisible.textContent = String(visibleRoutes.length);
+      renderFilterState();
+
+      if (!visibleRoutes.length) {
+        routesEl.innerHTML = "";
+        emptyEl.hidden = false;
+        return;
+      }
+
+      emptyEl.hidden = true;
+      routesEl.innerHTML = visibleRoutes.map((route, index) => {
+        const target = route.kind === "text" ? route.content : route.targetUrl;
+        const stateBadgeClass = route.enabled ? "badge-on" : "badge-off";
+        const stateBadgeText = route.enabled ? "Enabled" : "Disabled";
+
+        return `
+          <article class="route-card" style="animation-delay:${Math.min(index * 35, 240)}ms">
+            <div class="route-top">
+              <div>
+                <p class="route-path">/${escapeHtmlJs(route.slug)}</p>
+                <p class="route-target">${escapeHtmlJs(target || "-")}</p>
+              </div>
+              <div class="route-badges">
+                <span class="badge badge-kind">${escapeHtmlJs(route.kind)}</span>
+                <span class="badge ${stateBadgeClass}">${stateBadgeText}</span>
+              </div>
+            </div>
+
+            <div class="route-meta">
+              <span class="meta-chip">UA: ${escapeHtmlJs(route.userAgent || "原始")}</span>
+              <span class="meta-chip">CORS: ${route.enableCors ? "on" : "off"}</span>
+              <span class="meta-chip">HTML: ${route.rewriteHtml ? "on" : "off"}</span>
+              <span class="meta-chip">更新: ${escapeHtmlJs(route.updatedAt || "-")}</span>
+            </div>
+
+            <div class="route-notes">备注：${escapeHtmlJs(route.notes || "未填写")}</div>
+
+            <div class="route-actions">
+              <a class="btn btn-secondary" href="/${encodeURIComponent(route.slug).replace(/%2F/g, "/")}" target="_blank" rel="noreferrer">打开</a>
+              <button type="button" class="btn btn-secondary" data-action="edit" data-id="${route.id}">编辑</button>
+              <button type="button" class="btn btn-secondary" data-action="duplicate" data-id="${route.id}">复制</button>
+              <button type="button" class="btn btn-danger" data-action="delete" data-id="${route.id}">删除</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function loadRoutes() {
+      const response = await fetch(apiBase + "/routes", { credentials: "same-origin" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "加载路由失败");
+      state.routes = data.routes || [];
+      renderRoutes();
+    }
+
+    async function loadMeta() {
+      const response = await fetch(apiBase + "/meta", { credentials: "same-origin" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "加载配置失败");
+      return data;
+    }
+
+    function handleSchemaNotReady(schema) {
+      state.schemaReady = false;
+      state.routes = [];
+      renderRoutes();
+      setEditorDisabled(true);
+      closeRouteModal();
+      emptyEl.hidden = false;
+      emptyEl.textContent = "D1 表结构尚未初始化，请先执行初始化 SQL。";
+      showSchemaHelp(schema);
+      const message = (schema?.message || "D1 表结构尚未初始化，请先执行初始化 SQL。") +
+        "\\n\\n请在 Cloudflare D1 控制台执行：" +
+        "\\n" +
+        (schema?.initSqlPath || "migrations/0001_initial_schema.sql");
+      setStatus(schema?.message || "D1 表结构尚未初始化，请先执行初始化 SQL。", "error");
+      alert(message);
+    }
+
+    function showSchemaHelp(schema) {
+      if (!schemaHelpEl || document.getElementById("copyInitSqlBtn")) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "schema-help";
+      wrap.innerHTML =
+        "<strong>D1 初始化</strong><br>" +
+        "这是首次部署时最容易遗漏的一步。打开 Cloudflare D1 的 SQL Console，把建表 SQL 粘贴执行即可。<br>" +
+        "<code>" + escapeHtmlJs(schema?.initSqlPath || "migrations/0001_initial_schema.sql") + "</code>";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.id = "copyInitSqlBtn";
+      button.className = "btn btn-secondary";
+      button.textContent = "复制初始化 SQL";
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(String(schema?.sql || ""));
+          setStatus("初始化 SQL 已复制，去 D1 控制台粘贴执行即可", "success");
+        } catch {
+          setStatus("复制失败，请手动打开 migrations/0001_initial_schema.sql", "error");
+        }
+      });
+
+      wrap.appendChild(button);
+      schemaHelpEl.appendChild(wrap);
+    }
+
+    async function saveRoute(event) {
+      event.preventDefault();
+      state.routeValidation.submitted = true;
+      const invalidField = validateRouteForm({ force: true });
+      if (invalidField) {
+        invalidField.focus();
+        return;
+      }
+      setStatus("正在保存...");
+      const payload = readForm();
+      const routeId = state.editingId;
+      const method = routeId ? "PUT" : "POST";
+      const url = routeId ? apiBase + "/routes/" + routeId : apiBase + "/routes";
+
+      const response = await fetch(url, {
+        method,
+        credentials: "same-origin",
+        headers: { "content-type": "application/json", "x-rf-csrf": csrfToken },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "保存失败");
+      }
+
+      setStatus(routeId ? "路由已更新" : "路由已创建", "success");
+      await loadRoutes();
+      closeRouteModal();
+      resetForm();
+    }
+
+    async function deleteRoute(id) {
+      const response = await fetch(apiBase + "/routes/" + id, {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: { "x-rf-csrf": csrfToken },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "删除失败");
+      }
+      setStatus("路由已删除", "success");
+      await loadRoutes();
+      if (state.editingId === id) resetForm();
+    }
+
+    routesEl.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      const route = state.routes.find((item) => String(item.id) === button.dataset.id);
+      if (!route) return;
+
+      try {
+        if (action === "edit") {
+          fillForm(route, false);
+          setStatus("");
+        } else if (action === "duplicate") {
+          fillForm(route, true);
+          setStatus("已载入复制副本，请修改路径后保存", "success");
+        } else if (action === "delete") {
+          if (!confirm("确认删除 /" + route.slug + " ?")) return;
+          await deleteRoute(route.id);
+        }
+      } catch (error) {
+        setStatus(error.message || "操作失败", "error");
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      try {
+        await saveRoute(event);
+      } catch (error) {
+        setStatus(error.message || "保存失败", "error");
+      }
+    });
+
+    resetBtn.addEventListener("click", resetForm);
+    duplicateBtn.addEventListener("click", () => {
+      if (!state.editingId) {
+        setStatus("先选一条已有路由再复制", "error");
+        return;
+      }
+      const route = state.routes.find((item) => item.id === state.editingId);
+      if (!route) return;
+      fillForm(route, true);
+      setStatus("已准备复制当前路由", "success");
+    });
+
+    newRouteBtn.addEventListener("click", () => {
+      resetForm();
+      openRouteModal();
+    });
+    securityModeBtn.addEventListener("click", openSecurityModal);
+
+    securityAction.addEventListener("change", () => {
+      syncSecurityActionUi();
+    });
+    enableSecurityBtn.addEventListener("click", () => {
+      saveSecurityMode(true);
+    });
+    updateSecurityBtn.addEventListener("click", () => {
+      saveSecurityMode(null);
+    });
+    disableSecurityBtn.addEventListener("click", () => {
+      saveSecurityMode(false);
+    });
+
+    for (const button of kindButtons) {
+      button.addEventListener("click", () => {
+        form.elements.kind.value = button.dataset.kindOption || "proxy";
+        syncKindUi();
+      });
+    }
+
+    useUserAgent.addEventListener("change", syncUserAgentUi);
+    targetHttpsInput.addEventListener("input", () => {
+      markFieldTouched("target");
+      targetHttpsInput.value = String(targetHttpsInput.value || "").replace(/^https?:\/\//i, "");
+      validateTargetInput();
+    });
+    targetHttpsInput.addEventListener("blur", () => {
+      markFieldTouched("target");
+      validateTargetInput();
+    });
+    targetInput.addEventListener("input", () => {
+      markFieldTouched("target");
+      validateTargetInput();
+    });
+    targetInput.addEventListener("blur", () => {
+      markFieldTouched("target");
+      validateTargetInput();
+    });
+    contentInput.addEventListener("input", () => {
+      markFieldTouched("content");
+      validateContentInput();
+    });
+    contentInput.addEventListener("blur", () => {
+      markFieldTouched("content");
+      validateContentInput();
+    });
+    notesInput.addEventListener("input", () => {
+      markFieldTouched("notes");
+      validateNotesInput();
+    });
+    notesInput.addEventListener("blur", () => {
+      markFieldTouched("notes");
+      validateNotesInput();
+    });
+    advancedToggle.addEventListener("click", () => {
+      advancedPanel.classList.toggle("open");
+    });
+    uaTrigger.addEventListener("click", () => {
+      if (userAgentPanel.hidden) return;
+      uaPicker.classList.toggle("open");
+    });
+    for (const option of uaOptions) {
+      option.addEventListener("click", () => {
+        state.userAgentMode = option.dataset.uaValue || "mihomo";
+        uaPicker.classList.remove("open");
+        syncUserAgentUi();
+      });
+    }
+    uaCustomButton.addEventListener("click", () => {
+      state.userAgentMode = "custom";
+      syncUserAgentUi();
+      userAgentCustomInput.focus();
+    });
+    userAgentCustomInput.addEventListener("input", () => {
+      if (state.userAgentMode !== "custom") {
+        state.userAgentMode = "custom";
+      }
+      syncUserAgentUi();
+    });
+    closeModalBtn.addEventListener("click", closeRouteModal);
+    routeModalBackdrop.addEventListener("click", closeRouteModal);
+    updatePasswordBtn.addEventListener("click", () => {
+      updateConsolePassword();
+    });
+    // removed explicit backdrop listener
+    for (const button of themeButtons) {
+      button.addEventListener("click", () => {
+        applyTheme(button.dataset.themeMode || "system", true);
+      });
+    }
+    if (typeof themeMedia.addEventListener === "function") {
+      themeMedia.addEventListener("change", () => {
+        if ((document.documentElement.dataset.themeMode || "system") === "system") {
+          applyTheme("system");
+        }
+      });
+    }
+    window.addEventListener("resize", () => {
+      updateThemeThumb();
+      updateFilterThumb();
+    });
+    window.addEventListener("load", () => {
+      updateThemeThumb();
+      updateFilterThumb();
+    });
+    window.addEventListener("pageshow", () => {
+      updateThemeThumb();
+      updateFilterThumb();
+    });
+    if (typeof ResizeObserver === "function") {
+      const segObserver = new ResizeObserver(() => {
+        updateThemeThumb();
+        updateFilterThumb();
+      });
+      if (themeTrack) segObserver.observe(themeTrack);
+      if (filterTrack) segObserver.observe(filterTrack);
+    }
+    generateSlugBtn.addEventListener("click", () => {
+      slugGeneratorPanel.hidden = false;
+      refreshRandomSlug(slugLengthInput.value || slugLengthRange.value);
+      slugInput.focus();
+      slugInput.select();
+    });
+    slugLengthRange.addEventListener("input", () => {
+      refreshRandomSlug(slugLengthRange.value);
+    });
+    slugLengthInput.addEventListener("input", () => {
+      if (slugLengthInput.value.trim() === "") return;
+      refreshRandomSlug(slugLengthInput.value);
+    });
+    slugLengthInput.addEventListener("blur", () => {
+      refreshRandomSlug(slugLengthInput.value || 16);
+    });
+    slugInput.addEventListener("input", () => {
+      markFieldTouched("slug");
+      validateSlugInput();
+    });
+    slugInput.addEventListener("blur", () => {
+      markFieldTouched("slug");
+      validateSlugInput();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && routeModal.classList.contains("open")) {
+        closeRouteModal();
+        return;
+      }
+      if (event.key === "Escape" && securityModal.classList.contains("open")) {
+        closeSecurityModal();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!uaPicker.contains(event.target)) {
+        uaPicker.classList.remove("open");
+      }
+    });
+
+    searchField.addEventListener("input", (event) => {
+      state.search = event.target.value || "";
+      renderRoutes();
+    });
+
+    for (const button of filterButtons) {
+      button.addEventListener("click", () => {
+        state.kindFilter = button.dataset.kindFilter || "all";
+        renderRoutes();
+      });
+    }
+
+    applyTheme(readThemeMode());
+    resetForm();
+    renderSecurityMode();
+    renderFilterState();
+    requestAnimationFrame(() => {
+      updateThemeThumb();
+      updateFilterThumb();
+    });
+
+    loadMeta()
+      .then((meta) => {
+        if (meta?.securityMode) {
+          state.securityMode = normalizeSecurityMode(meta.securityMode);
+          renderSecurityMode();
+        }
+
+        if (!meta.schema?.ready) {
+          handleSchemaNotReady(meta.schema);
+          return;
+        }
+
+        state.schemaReady = true;
+        setEditorDisabled(false);
+        return loadRoutes();
+      })
+      .catch((error) => {
+        setStatus(error.message || "加载失败", "error");
+      });
+
+    function escapeHtmlJs(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "reforward",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "find src -name '*.js' -exec node --check {} \\;",
+    "dev": "wrangler dev --persist-to ./.wrangler/state",
+    "dev:local": "bash scripts/dev-local.sh",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

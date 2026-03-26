@@ -1,0 +1,21 @@
+{
+  "$schema": "https://www.unpkg.com/wrangler/config-schema.json",
+  "name": "reforward",
+  "main": "src/index.js",
+  "compatibility_date": "2026-03-20",
+  "keep_vars": true,
+  "rules": [
+    { "type": "Text", "globs": ["**/*.html"] }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB"
+    }
+  ]
+}
